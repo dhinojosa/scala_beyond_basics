@@ -22,9 +22,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       y should be("Foo")
     }
 
-    it(
-      """has the ability to have a value name and an @
-        |  to not only capture the individual items but the whole item""".stripMargin) {
+    it("has the ability to have a value name and an @ to not only capture the individual items but the whole item".stripMargin) {
       val t@(x, y) = (100, "Foo")
       x should be(100)
       y should be("Foo")
@@ -60,7 +58,6 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       //val a:Int = 40
       a should be(40)
     }
-
 
     it(
       """We can also match Lists by assignment, start off simple,
@@ -103,7 +100,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """can do a list where you care about an *exact* number of items,
         |  let's try three using :: form""".stripMargin) {
-      val fst :: snd :: trd :: Nil = List(40, 19, 100)
+      val fst :: snd :: trd :: Nil= List(40, 19, 100)
       fst should be(40)
       snd should be(19)
       trd should be(100)
@@ -201,11 +198,34 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it( """Lets do up a replicate method""".stripMargin) {
-      pending
+       def replicate[A](count:Int, item: A):List[A] = {
+           count match {
+            case 0 => List()
+            case 1 => List(item)
+            case n => item :: replicate(n - 1, item)
+          }
+        }
+
+        replicate(5, "Wow") should be (List("Wow", "Wow", "Wow", "Wow", "Wow"))
+        replicate(1, "Wow") should be (List("Wow"))
+        replicate(0, "Wow") should be (List())
     }
 
     it( """will create a replicate in a tail recursive manner""".stripMargin) {
-      pending
+      def replicate[A](count:Int, item: A):List[A] = {
+        @tailrec
+        def repl(count: Int, item: A, acc: List[A]): List[A] = {
+          count match {
+            case 0 => acc
+            case 1 => item :: acc
+            case n => repl(n - 1, item, item :: acc)
+          }
+        }
+        repl(count, item, List())
+      }
+      replicate(5, "Wow") should be (List("Wow", "Wow", "Wow", "Wow", "Wow"))
+      replicate(1, "Wow") should be (List("Wow"))
+      replicate(0, "Wow") should be (List())
     }
 
 
