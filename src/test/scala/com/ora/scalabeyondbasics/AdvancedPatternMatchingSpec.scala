@@ -307,7 +307,17 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it( """also works with a scala.collection.immutable.Stream""") {
-      pending
+      def from(x: Int): Stream[Int] = x #:: from(x + 1)
+      def factorials(): Stream[Int] = from(1).scan(1)(_ * _)
+      def secondStream[A](x: Stream[A]): Option[A] = {
+        x match {
+          case Stream.Empty => None // Shouldn't happen
+          case _ #:: Stream.Empty => None //0!
+          case _ #:: snd #:: Stream.Empty => Some(snd) //1!
+          case _ #:: snd #:: rest => Some(snd) //1#
+        }
+      }
+      secondStream(factorials()) should be(Some(1))
     }
 
     it( """should also have guards just in case""") {
@@ -396,11 +406,27 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       """is like a function, but with an added method called isDefined.  isDefined() returns
         | true or false, it also has an `apply` method to invoke the function iff isDefined returns true.
         | Partial Functions together should form a complete function.""".stripMargin) {
-      pending
+      val doubleEvens = new PartialFunction[Int, Int]() {
+        override def isDefinedAt(x: Int): Boolean = x % 2 == 0
+
+        override def apply(v1: Int): Int = v1 * 2
+      }
+
+      val tripleOdds = new PartialFunction[Int, Int]() {
+        override def isDefinedAt(x: Int): Boolean = x % 2 != 0
+
+        override def apply(v1: Int): Int = v1 * 3
+      }
+
+      val result = List(1, 2, 3, 4, 5, 6).map {
+        doubleEvens orElse tripleOdds
+      }
+      result should be(List(3, 4, 9, 8, 15, 12))
     }
 
     it( """can also be trimmed down inline with case statements compare the above with the following below""") {
-      pending
+      val result = List(1, 2, 3, 4, 5, 6).map { case x: Int if x % 2 == 0 => x * 2; case y: Int if y % 2 != 0 => y * 3 }
+      result should be(List(3, 4, 9, 8, 15, 12))
     }
   }
 
@@ -438,7 +464,8 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it( """can also be used in composing partial functions to form a complete function""") {
-      pending
+      val result = List(1, 2, 3, 4, 5, 6).map { case Even(x) => x * 2; case Odd(y) => y * 3 }
+      result should be(List(3, 4, 9, 8, 15, 12))
     }
   }
 
