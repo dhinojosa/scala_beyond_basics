@@ -144,7 +144,18 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
 
     it( """Implicit wrappers can be created using a function and is often easier to mental map.""".stripMargin) {
-      pending
+      class IntWrapper(x:Int) {
+        def isOdd:Boolean = x % 2 != 0
+        def isEven:Boolean = !isOdd
+      }
+      
+      import scala.language.implicitConversions
+    
+      implicit def int2IntWrapper = (x:Int) => new IntWrapper(x)
+      
+      40.isOdd should be (false)
+      33.isOdd should be (true)
+      40.isEven should be (true)
     }
 
     it(
