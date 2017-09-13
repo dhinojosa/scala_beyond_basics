@@ -135,3 +135,4 @@ Session.vim
 # auto-generated tag files
 tags
 .cache-tests
+project/build.properties
