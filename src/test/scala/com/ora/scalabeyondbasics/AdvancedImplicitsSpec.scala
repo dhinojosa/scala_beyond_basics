@@ -134,8 +134,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
       import scala.language.implicitConversions
 
-      //map.put((Int) => IntWrapper, new IntWrapper(x))
-
       implicit def int2IntWrapper(x: Int): IntWrapper = new IntWrapper(x)
 
       40.isOdd should be(false)
