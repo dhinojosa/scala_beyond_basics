@@ -285,6 +285,20 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       """is like a function, but with an added method called isDefined.  isDefined() returns
         | true or false, it also has an `apply` method to invoke the function iff isDefined returns true.
         | Partial Functions together should form a complete function.""".stripMargin) {
+
+
+      val doubleEvens = new PartialFunction[Int, Int]() {
+        override def isDefinedAt(x: Int): Boolean = x % 2 == 0
+
+        override def apply(v1: Int): Int = v1 * 2
+      }
+
+      val tripleOdds = new PartialFunction[Int, Int]() {
+        override def isDefinedAt(x: Int): Boolean = x % 2 != 0
+
+        override def apply(v1: Int): Int = v1 * 3
+      }
+
       pending
     }
 
@@ -325,6 +339,17 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
   }
 
   describe("Companion Object Extractors") {
+
+    class Genre(val name: String)
+    object Genre {
+      def unapply(arg: Genre): Option[String] = Some(arg.name)
+    }
+
+    class Movie(val title: String, val year: Int, val genre: Genre)
+    object Movie {
+      def unapply(arg: Movie): Option[(String, Int, Genre)] = Some(arg.title, arg.year, arg.genre)
+    }
+
     it(
       """Companion objects will generally have the unapply or unapplySeq for classes, this also means
         |  that case classes create unapply automatically, but you can create or override your own

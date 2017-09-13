@@ -50,7 +50,9 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     }
 
 
-    it("""Christopher A. Question: List[String] and List[Double]""") {
+    it(
+      """Christopher A. Question: if you have a List[String] implicitly will it try
+        | to inject into a List[Double]?""".stripMargin) {
       pending
     }
 
@@ -111,7 +113,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """has a common way, to store that particular implicit
         |  recipe in an object that makes should make
         |  sense and then import that object""".stripMargin) {
-
       pending
     }
 
@@ -147,9 +148,7 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """uses the signature [T:WrappedType], which is
         | equivalent to (t:T)(implicit w:WrappedType[T])
         | let's try it with """.stripMargin) {
-
       pending
-
     }
   }
 
@@ -161,7 +160,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     it(
       """uses one operator, =:= which is actually the full type =:=[A,B] that
         |  will to see if something is of the same type""".stripMargin) {
-
       pending
     }
 
