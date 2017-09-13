@@ -1,7 +1,5 @@
 package com.ora.scalabeyondbasics
 
-import java.util.concurrent.Executors
-
 import org.scalatest.{FunSpec, Matchers}
 
 class AdvancedImplicitsSpec extends FunSpec with Matchers {
@@ -14,12 +12,10 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """is done per scope so in the following example, we will begin with an implicit value
         |  and call it from inside a method which uses a multiple parameter list where one
         |  one group would """.stripMargin) {
-
       pending
     }
 
     it("""will allow you to place something manually, if you want to override the implicit value""".stripMargin) {
-
       pending
     }
 
@@ -27,7 +23,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """will gripe at compile time if there are two implicit bindings of the same type.  It's
         |  worth noting that what Scala doing are compile time tricks for implicit. One strategy is to
         |  wrap a value in a type to avoid conflict""".stripMargin) {
-
       pending
     }
 
@@ -36,7 +31,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """is really used to bind services that require something and
         |  you don't particularly need to inject everywhere explicitly, in this
         |  case let's discuss Future[+T]""".stripMargin) {
-
       pending
     }
 
@@ -139,7 +133,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """Uses <% inside of a parameterized type declaration to determine if there is a conversion available
         | then within you can treat an object as an object of that type. It is unorthodox, and has since been
         | deprecated.""".stripMargin) {
-
       pending
     }
   }
@@ -179,7 +172,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
   describe("Getting around Erasure Using TypeTags") {
     it("used to use Manifest but now uses a type tag to retrieve what is erased") {
-
       pending
     }
   }
@@ -192,7 +184,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     it(
       """can be used to determine equality, so whether than make equals inside of an class,
         | it is now an outside concern""".stripMargin) {
-
       pending
     }
 

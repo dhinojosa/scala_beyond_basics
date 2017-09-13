@@ -2,10 +2,6 @@ package com.ora.scalabeyondbasics
 
 import org.scalatest.{FunSpec, Matchers}
 
-import scala.annotation.tailrec
-import scala.util.matching.Regex
-import scala.util.matching.Regex.MatchIterator
-
 class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
 
   //First review the basics
@@ -315,12 +311,9 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
   }
 
   describe("Custom pattern matching with an instance") {
-
-
     it(
       """can also extract from an instance just in case it is the instance that contains logic
         |  to extract information, this is the technique used to for regex grouping""".stripMargin) {
-
       pending
     }
   }
