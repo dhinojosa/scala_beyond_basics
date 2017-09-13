@@ -22,7 +22,9 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       y should be("Foo")
     }
 
-    it("has the ability to have a value name and an @ to not only capture the individual items but the whole item".stripMargin) {
+    it(
+      """has the ability to have a value name and an @
+        |  to not only capture the individual items but the whole item""".stripMargin) {
       val t@(x, y) = (100, "Foo")
       x should be(100)
       y should be("Foo")
@@ -58,6 +60,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       //val a:Int = 40
       a should be(40)
     }
+
 
     it(
       """We can also match Lists by assignment, start off simple,
@@ -100,7 +103,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """can do a list where you care about an *exact* number of items,
         |  let's try three using :: form""".stripMargin) {
-      val fst :: snd :: trd :: Nil= List(40, 19, 100)
+      val fst :: snd :: trd :: Nil = List(40, 19, 100)
       fst should be(40)
       snd should be(19)
       trd should be(100)
@@ -198,170 +201,67 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it( """Lets do up a replicate method""".stripMargin) {
-       def replicate[A](count:Int, item: A):List[A] = {
-           count match {
-            case 0 => List()
-            case 1 => List(item)
-            case n => item :: replicate(n - 1, item)
-          }
-        }
-
-        replicate(5, "Wow") should be (List("Wow", "Wow", "Wow", "Wow", "Wow"))
-        replicate(1, "Wow") should be (List("Wow"))
-        replicate(0, "Wow") should be (List())
+      pending
     }
 
     it( """will create a replicate in a tail recursive manner""".stripMargin) {
-      def replicate[A](count:Int, item: A):List[A] = {
-        @tailrec
-        def repl(count: Int, item: A, acc: List[A]): List[A] = {
-          count match {
-            case 0 => acc
-            case 1 => item :: acc
-            case n => repl(n - 1, item, item :: acc)
-          }
-        }
-        repl(count, item, List())
-      }
-      replicate(5, "Wow") should be (List("Wow", "Wow", "Wow", "Wow", "Wow"))
-      replicate(1, "Wow") should be (List("Wow"))
-      replicate(0, "Wow") should be (List())
+      pending
     }
 
 
-    it( """should show an empty list because we haven't covered that yet, first try.""") {
-       def mySecond[A](list:List[A]):Option[A] = {
-          list match {
-            case Nil => None
-            case x :: Nil  => None
-            case x :: y :: Nil => Some(y)
-            case x :: y :: rest => Some(y)
-          }
-       }
-       mySecond(List()) should be (None)
-       mySecond(List(1)) should be (None)
-       mySecond(List(1,2)) should be (Some(2))
-       mySecond(List(1,2,3)) should be (Some(2))
+    it( """should show an empty list because we haven't covered that yet.""") {
+      pending
     }
 
     it( """can also use an alternative pipe to match""") {
-      def mySecond[A](list:List[A]):Option[A] = {
-        list match {
-          //case Nil | _ :: Nil => None
-          case _ :: y :: _ => Some(y)
-          case _ => None
-        }
-      }
-      mySecond(List()) should be (None)
-      mySecond(List(1)) should be (None)
-      mySecond(List(1,2)) should be (Some(2))
-      mySecond(List(1,2,3)) should be (Some(2))
+      pending
     }
 
     it(
       """should have a None in a pattern match, though we have not covered it.  This is just one way
         |  to get the information from an Option[T]""".stripMargin) {
-      def number2String(x:Int):String = {
-         val map = Map(1 -> "One", 2 -> "Two", 3 -> "Three")
-         map.get(x) match {
-           case Some(c) => s"Found: Some($c)"
-           case None => "Found: Nothing"
-         }
-      }
-      number2String(1) should be ("Found: Some(One)")
-      number2String(4) should be ("Found: Nothing")
+      pending
     }
 
     it( """should be careful with only Some vs. Option""") {
-      val answerToEverything = Some(42).asInstanceOf[Option[Int]]
-      val result = answerToEverything match {
-        case Some(x) => s"The answer is $x"
-        case None    => s"Found nothing"
-      }
-      result should be ("The answer is 42")
+      pending
     }
 
     it( """should also match just simple types like Int, String, etc.""") {
-      val a:Any = 4
-      val result = a match {
-        case x:Int => "Int"
-        case x:String => "String"
-        case x:(_, _) => "Tuple2"
-        case x:(_, _, _) => "Tuple2"
-        case _ => "Who knows"
-      }
-      result should be ("Int")
+      pending
     }
 
     it( """of course order is always important in pattern matching, particularly with types""") {
-      val a:Any = 4
-      val result = a match {
-        case x:Number => "Number"
-        case x:Int => "Int"
-        case x:String => "String"
-        case x:(_, _) => "Tuple2"
-        case x:(_, _, _) => "Tuple2"
-        case _ => "Who knows"
-      }
-      result should be ("Number")
+      pending
     }
 
     it( """also works with a scala.collection.immutable.Stream""") {
-      def from(x: Int): Stream[Int] = x #:: from(x + 1)
-      def factorials(): Stream[Int] = from(1).scan(1)(_ * _)
-      def secondStream[A](x: Stream[A]): Option[A] = {
-        x match {
-          case Stream.Empty => None // Shouldn't happen
-          case _ #:: Stream.Empty => None //0!
-          case _ #:: snd #:: Stream.Empty => Some(snd) //1!
-          case _ #:: snd #:: rest => Some(snd) //1#
-        }
-      }
-      secondStream(factorials()) should be(Some(1))
+      pending
     }
 
     it( """should also have guards just in case""") {
-      val a:Any = 4
-      val result = a match {
-        case x:Int if x > 10 => "Int, 10 or higher"
-        case x:Int if x < 10 => "Int, 10 or lower"
-        case x:String => "String"
-        case x:(_, _) => "Tuple2"
-        case x:(_, _, _) => "Tuple2"
-        case _ => "Who knows"
-      }
-      result should be ("Int, 10 or lower")
+      pending
     }
   }
 
   describe("A Pattern Match with the following custom class") {
-    case class Employee(firstName:String, lastName:String)
-
     it( """can do compound matching where one item is in another, using the :: form""") {
-      val Employee(fn, ln) :: Nil = List(Employee("Cyndi", "Lauper"))
-      fn should be ("Cyndi")
-      ln should be ("Lauper")
+      pending
     }
 
     it( """can do compound matching where one item is in another, using the List() form""") {
-      val List(Employee(fn, ln)) = List(Employee("Cyndi", "Lauper"))
-      fn should be ("Cyndi")
-      ln should be ("Lauper")
+      pending
     }
 
     it(
       """can do compound matching layers deep, like an Employee,
         |  in a Some, in List, using the :: form""".stripMargin) {
-      val Some(Employee(fn, ln)) :: Nil = List(Some(Employee("Cyndi", "Lauper")))
-      fn should be ("Cyndi")
-      ln should be ("Lauper")
+      pending
     }
 
     it(
       """can do compound matching layers deep, like an Employee, in a Some, in List, using the List() form""") {
-      val List(Some(Employee(fn, ln))) = List(Some(Employee("Cyndi", "Lauper")))
-      fn should be ("Cyndi")
-      ln should be ("Lauper")
+      pending
     }
 
     it(
@@ -373,31 +273,14 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """can match the whole custom case class when provided with @
         |  along with the pattern match itself""".stripMargin) {
-      val a@(Employee(fn, ln) :: Nil) = List(Employee("Cyndi", "Lauper"))
-      fn should be ("Cyndi")
-      ln should be ("Lauper")
-      a should be (List(Employee("Cyndi", "Lauper")))
+      pending
     }
 
   }
 
-  describe("A Regular Pattern Expression Match") { //important
+  describe("A Regular Pattern Expression Match") {
     it("""uses .r after a String to Convert it to a Regex Type, from there groups can can be determined""".stripMargin) {
-      case class PhoneNumber(ac:String, prefix:String, suffix:String)
-
-      def convertStringToNumber(s:String):Option[PhoneNumber] = {
-        val noAreaCode:Regex = """(\d{3})-(\d{4})""".r
-        val withAreaCode:Regex = """(\d{3})-(\d{3})-(\d{4})""".r
-
-        s match {
-          case noAreaCode(pre, suf) => Some(PhoneNumber("000", pre, suf))
-          case withAreaCode(ac, pre, suf) => Some(PhoneNumber(ac, pre, suf))
-          case _ => None
-        }
-      }
-
-      convertStringToNumber("444-3012") should be (Some(PhoneNumber("000", "444", "3012")))
-
+      pending
     }
   }
 
@@ -406,124 +289,45 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       """is like a function, but with an added method called isDefined.  isDefined() returns
         | true or false, it also has an `apply` method to invoke the function iff isDefined returns true.
         | Partial Functions together should form a complete function.""".stripMargin) {
-      val doubleEvens = new PartialFunction[Int, Int]() {
-        override def isDefinedAt(x: Int): Boolean = x % 2 == 0
-
-        override def apply(v1: Int): Int = v1 * 2
-      }
-
-      val tripleOdds = new PartialFunction[Int, Int]() {
-        override def isDefinedAt(x: Int): Boolean = x % 2 != 0
-
-        override def apply(v1: Int): Int = v1 * 3
-      }
-
-      val result = List(1, 2, 3, 4, 5, 6).map {
-        doubleEvens orElse tripleOdds
-      }
-      result should be(List(3, 4, 9, 8, 15, 12))
+      pending
     }
 
     it( """can also be trimmed down inline with case statements compare the above with the following below""") {
-      val result = List(1, 2, 3, 4, 5, 6).map { case x: Int if x % 2 == 0 => x * 2; case y: Int if y % 2 != 0 => y * 3 }
-      result should be(List(3, 4, 9, 8, 15, 12))
+      pending
     }
   }
 
   describe("Custom pattern matching") {
 
-    object Even {
-      def unapply(x:Int):Option[Int] = if (x % 2 == 0) Some(x) else None
-    }
-
-    object Odd {
-      def unapply(x:Int):Option[Int] = if (x % 2 != 0) Some(x) else None
-    }
-
     it(
       """uses unapply to extract elements for a pattern match so you can do your own pattern matching,
         |  the unapply method should return an Option and either a tuple or list of the parts""".stripMargin) {
-
-      val num = 100
-      val result = num match {
-        case Even(x) => s"Even $x"
-        case Odd(x) => s"Odd $x"
-      }
-      result should be ("Even 100")
+      pending
     }
 
     it( """while building a pattern match off of another unapply""".stripMargin) {
-      val t2 = (100, 33)
-      val result = t2 match {
-        case (Even(_), Even(_)) => s"Two Evens"
-        case (Even(_), Odd(_)) => s"Even and Odd"
-        case (Odd(_), Odd(_)) => s"Two Odd"
-        case (Odd(_), Even(_)) => s"Odd and Even"
-      }
-      result should be ("Even and Odd")
+      pending
     }
 
     it( """can also be used in composing partial functions to form a complete function""") {
-      val result = List(1, 2, 3, 4, 5, 6).map { case Even(x) => x * 2; case Odd(y) => y * 3 }
-      result should be(List(3, 4, 9, 8, 15, 12))
+      pending
     }
   }
 
   describe("Custom pattern matching with an instance") {
 
-    class AllInt(val f:(Int, Int) => Int) {
-      private val regex: Regex = """\d+""".r
-      def unapply(s:String): Option[Int] = {
-        val items = regex.findAllIn(s)
-        if (items.isEmpty) None else {
-          Some(items.map(_.toInt).toList.reduce(f))
-        }
-      }
-    }
 
     it(
       """can also extract from an instance just in case it is the instance that contains logic
         |  to extract information, this is the technique used to for regex grouping""".stripMargin) {
 
-        val s = "What is the total of 100, 200, 300, 400?"
-        val f = (total:Int, next:Int) => total + next
-
-        val allIntSum = new AllInt(f)
-
-        val result = s match {
-          case allIntSum(z) => s"Captured: $z"
-          case _ => s"Didn't work"
-        }
-
-        result should be ("Captured: 1000")
+      pending
     }
-
-    //That you can do extractions using a object or an instance.
-
   }
 
   describe("Custom pattern matching with unapplySeq") {
     it("would require an unapplySeq for extracting collections") {
-      object WordNumbers {
-        def unapplySeq(x:String):Option[Seq[String]] = {
-          val regex = """\d+""".r
-          val items = regex.findAllIn(x)
-          if (items.isEmpty) None else Some(items.toSeq)
-        }
-      }
-
-      val WordNumbers(n1) = "That person is 44 years old"
-      n1 should be ("44")
-
-      val WordNumbers(o1, o2) = "The score in yesterdays game was 100 to 33, it was a blowout!"
-      o1 should be ("100")
-      o2 should be ("33")
-
-
-      val WordNumbers(m1, m2, rest@_*) = "The lottery numbers were 100, 33, 12, 19, 10, 6 it was a blowout!"
-      m1 should be ("100")
-      m2 should be ("33")
-      rest should be (List("12", "19", "10", "6"))
+      pending
     }
   }
 
@@ -532,19 +336,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       """Companion objects will generally have the unapply or unapplySeq for classes, this also means
         |  that case classes create unapply automatically, but you can create or override your own
         |  particular rules""".stripMargin) {
-      class Country(val name:String, val capital:String)
-
-      object Country {
-        def apply(name:String, capital:String) = new Country(name, capital)
-        def unapply(arg: Country): Option[(String, String)] = Some(arg.name -> arg.capital)
-      }
-
-      val españa = Country("España", "Madrid")
-      val result = españa match {
-        case Country(x, y) => s"The country is $x and the capital is $y"
-      }
-
-      result should be ("The country is España and the capital is Madrid")
+      pending
     }
   }
 
