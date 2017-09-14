@@ -232,11 +232,31 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
 
 
     it( """should show an empty list because we haven't covered that yet.""") {
-      pending
+      def mySecond[A](list: List[A]):Option[A] = {
+        list match {
+          case Nil => None
+          case _ :: Nil => None
+          case _ :: snd :: _ => Some(snd)
+        }
+      }
+
+      mySecond(List()) should be (None)
+      mySecond(List(1)) should be (None)
+      mySecond(List(1,2)) should be (Some(2))
+      mySecond(List("A","B","C")) should be (Some("B"))
     }
 
     it( """can also use an alternative pipe to match""") {
-      pending
+      def mySecond[A](list: List[A]):Option[A] = {
+        list match {
+          case Nil | _ :: Nil => None
+          case _ :: snd :: _ => Some(snd)
+        }
+      }
+      mySecond(List()) should be (None)
+      mySecond(List(1)) should be (None)
+      mySecond(List(1,2)) should be (Some(2))
+      mySecond(List("A","B","C")) should be (Some("B"))
     }
 
     it(
