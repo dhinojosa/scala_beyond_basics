@@ -2,6 +2,8 @@ package com.ora.scalabeyondbasics
 
 import org.scalatest.{FunSpec, Matchers}
 
+import scala.annotation.tailrec
+
 class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
 
   //First review the basics
@@ -18,8 +20,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       y should be("Foo")
     }
 
-    it(
-      """has the ability to have a value name and an @
+    it("""has the ability to have a value name and an @
         |  to not only capture the individual items but the whole item""".stripMargin) {
       val t@(x, y) = (100, "Foo")
       x should be(100)
@@ -135,9 +136,9 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """can do a list where you want to capture any number of items and
         |  ignore the remainder in an extra list using the List() form""".stripMargin) {
-      val List(fst, snd, _*) = (1 to 5).toList
-      fst should be(1)
-      snd should be(2)
+      val List(f, s, _*) = (1 to 5).toList
+      f should be(1)
+      s should be(2)
     }
 
     it(
@@ -197,11 +198,36 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it( """Lets do up a replicate method""".stripMargin) {
-      pending
+
+      def replicate[A](count:Int, item:A):List[A] = {
+        count match {
+          case 0 => Nil
+          case c => item :: replicate(c - 1, item)
+        }
+      }
+
+      replicate(0, "Wow") should be (List())
+      replicate(1, "Wow") should be (List("Wow"))
+      replicate(2, "Wow") should be (List("Wow", "Wow"))
+      replicate(5, "Wow") should be (List("Wow", "Wow", "Wow", "Wow", "Wow"))
     }
 
     it( """will create a replicate in a tail recursive manner""".stripMargin) {
-      pending
+      def replicate[A](count:Int, item:A):List[A] = {
+        @tailrec
+        def repl(count: Int, item: A, acc:List[A]): List[A] = {
+          count match {
+            case 0 => acc
+            case c => repl(c - 1, item, item :: acc)
+          }
+        }
+        repl(count, item, Nil)
+      }
+
+      replicate(0, "Wow") should be (List())
+      replicate(1, "Wow") should be (List("Wow"))
+      replicate(2, "Wow") should be (List("Wow", "Wow"))
+      replicate(5, "Wow") should be (List("Wow", "Wow", "Wow", "Wow", "Wow"))
     }
 
 
