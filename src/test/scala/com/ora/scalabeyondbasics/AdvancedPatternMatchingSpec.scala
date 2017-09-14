@@ -262,7 +262,16 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """should have a None in a pattern match, though we have not covered it.  This is just one way
         |  to get the information from an Option[T]""".stripMargin) {
-      pending
+
+      def number2String(x:Int):String = {
+        val map = Map(1 -> "One", 2 -> "Two")
+        map.get(x) match {
+          case Some(ans) => s"Found: $ans"
+          case None => "Not Found"
+        }
+      }
+      number2String(1) should be ("Found: One")
+      number2String(5) should be ("Not Found")
     }
 
     it( """should be careful with only Some vs. Option""") {
