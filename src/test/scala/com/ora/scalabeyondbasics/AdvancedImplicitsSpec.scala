@@ -148,7 +148,11 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """uses the signature [T:WrappedType], which is
         | equivalent to (t:T)(implicit w:WrappedType[T])
         | let's try it with """.stripMargin) {
-      pending
+      trait Loggable[T] {
+        def log(t: T)
+      }
+
+      class Employee(val firstName: String, val lastName: String)
     }
   }
 
@@ -160,7 +164,11 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     it(
       """uses one operator, =:= which is actually the full type =:=[A,B] that
         |  will to see if something is of the same type""".stripMargin) {
-      pending
+      class MyPair[A, B](val a: A, val b: B) {
+        def first: A = a
+
+        def second: B = b
+      }
     }
 
     it("""uses the operator, <:< which will test if A is a subtype of B""") {
@@ -182,7 +190,11 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     it(
       """can be used to determine equality, so whether than make equals inside of an class,
         | it is now an outside concern""".stripMargin) {
-      pending
+      class Employee(val firstName:String, val lastName:String)
+
+      trait Eq[T] {
+        def equals(a:T, b:T):Boolean
+      }
     }
 
     it("can be used for ordering") {

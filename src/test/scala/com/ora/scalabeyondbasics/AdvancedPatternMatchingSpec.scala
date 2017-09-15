@@ -3,6 +3,7 @@ package com.ora.scalabeyondbasics
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.annotation.tailrec
+import scala.util.matching.Regex
 
 class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
 
@@ -287,20 +288,57 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       result should be("The answer is of course 42")
     }
 
-    it( """should also match just simple types like Int, String, etc.""") {
-      pending
+    it( """catch up: should also match just simple types like Int, String, etc.""") {
+      def whatDoIHave_?(a: Any): String = {
+        a match {
+          case a: Int => "Int"
+          case b: String => "String"
+          case c: (_, _) => "Tuple 2"
+          case d: (_, _, _) => "Tuple 3"
+          case e:
+            Number => "Another number"
+        }
+      }
+      whatDoIHave_?("Hello") should be("String")
     }
 
-    it( """of course order is always important in pattern matching, particularly with types""") {
-      pending
+    it( """catch up: of course order is always important in pattern matching, particularly with types""") {
+      def whatDoIHave_?(a: Any): String = {
+        a match {
+          case a: Int => "Int"
+          case b: String => "String"
+          case e: Number => "Another number"
+          case c: (_, _) => "Tuple 2"
+          case d: (_, _, _) => "Tuple 3"
+        }
+      }
+      whatDoIHave_?(10) should be("Int")
     }
 
-    it( """also works with a scala.collection.immutable.Stream""") {
-      pending
+    it( """catch up: also works with a scala.collection.immutable.Stream""") {
+      def from(x: Int): Stream[Int] = x #:: from(x + 1)
+      def factorials(): Stream[Int] = from(1).scan(1)(_ * _)
+      def secondStream[A](x: Stream[A]): Option[A] = {
+        x match {
+          case Stream.Empty => None // Shouldn't happen
+          case _ #:: Stream.Empty => None //0!
+          case _ #:: snd #:: Stream.Empty => Some(snd) //1!
+          case _ #:: snd #:: rest => Some(snd) //1#
+        }
+      }
+      secondStream(factorials()) should be(Some(1))
     }
 
-    it( """should also have guards just in case""") {
-      pending
+    it( """catch up: should also have guards just in case""") {
+      def lowBar(x: AnyVal): Int = {
+        x match {
+          case a: Int if a < 100 => 10
+          case b: Int if b > 100 => 20
+          case c: Double if c < 10 => 30
+          case _ => 40
+        }
+      }
+      lowBar(1000.0F) should be(40)
     }
   }
 
@@ -456,16 +494,50 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
   }
 
   describe("Custom pattern matching with an instance") {
+
+    class AllInt[B](val g:(Int, Int) => Int) {
+      val regex: Regex = """\d+""".r
+      def unapply(s:String):Option[Int] = {
+        val it = regex.findAllIn(s)
+        if (it.isEmpty) None else {
+          Some(regex.findAllIn(s).map(_.toInt).toList.reduce(g))
+        }
+      }
+    }
+
+
     it(
-      """can also extract from an instance just in case it is the instance that contains logic
+      """catch up: can also extract from an instance just in case it is the instance that contains logic
         |  to extract information, this is the technique used to for regex grouping""".stripMargin) {
-      pending
+      val question = "What is the total of 100, 300, 22, 97, 230, 950, and 411?"
+      val sumInt = new AllInt(_ + _)
+
+      val result = question match {
+        case sumInt(r) => s"Captured: $r"
+        case _ => "Unknown"
+      }
+
+      result should be ("Captured: 2110")
     }
   }
 
   describe("Custom pattern matching with unapplySeq") {
-    it("would require an unapplySeq for extracting collections") {
-      pending
+    it("catch up: would require an unapplySeq for extracting collections") {
+      object WordNumbers {
+        def unapplySeq(x: String): Option[Seq[String]] = {
+          val regex = """\d+""".r
+          val matches = regex.findAllIn(x)
+          if (matches.isEmpty) None else Some(matches.toSeq)
+        }
+      }
+
+      val result = s"The score yesterday was 110 to 99" match {
+        case (WordNumbers()) => s"No numbers"
+        case (WordNumbers(n1, n2)) => s"Two numbers: $n1 and $n2"
+        case (WordNumbers(n1, n2, n3@_*)) => s"More than two numbers: $n1, $n2, and the rest is $n3"
+        case x => s"Unknown with $x"
+      }
+      result should be("Two numbers: 110 and 99")
     }
   }
 
@@ -495,6 +567,5 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
   }
 
-  //GET ON SLACK!!!! FOR QUESTIONS!
   //Finally: Review things list Option, List, and look at their unapply, and unapplySeq
 }
