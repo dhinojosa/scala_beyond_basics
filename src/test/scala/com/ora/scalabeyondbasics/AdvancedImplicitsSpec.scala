@@ -1,6 +1,7 @@
 package com.ora.scalabeyondbasics
 
 import org.scalatest.{FunSpec, Matchers}
+import java.util.concurrent.Executors
 
 class AdvancedImplicitsSpec extends FunSpec with Matchers {
   describe(
@@ -12,18 +13,36 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """is done per scope so in the following example, we will begin with an implicit value
         |  and call it from inside a method which uses a multiple parameter list where one
         |  one group would """.stripMargin) {
-      pending
+      
+      implicit val a = 40 //implicitly binding 40 to Int
+  
+      def calcPayment(hours:Int)(implicit rate:Int) = hours * rate
+      
+      calcPayment(50) should be (2000)      
     }
 
     it("""will allow you to place something manually, if you want to override the implicit value""".stripMargin) {
-      pending
+      
+      implicit val a = 40 //implicitly binding 40 to Int
+  
+      def calcPayment(hours:Int)(implicit rate:Int) = hours * rate
+      
+      calcPayment(50)(100) should be (5000) 
     }
 
-    it(
-      """will gripe at compile time if there are two implicit bindings of the same type.  It's
+    it("""will gripe at compile time if there are two implicit bindings of the same type.  It's
         |  worth noting that what Scala doing are compile time tricks for implicit. One strategy is to
         |  wrap a value in a type to avoid conflict""".stripMargin) {
-      pending
+       
+       case class Rate(value:Int)
+       case class Age(value:Int)
+      
+       implicit val a = Rate(100)
+       implicit val b = Age(40)
+       
+       def calcPayment(hours:Int)(implicit rate:Rate) = hours * rate.value
+      
+       calcPayment(50) should be (5000)
     }
 
 
@@ -31,29 +50,73 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """is really used to bind services that require something and
         |  you don't particularly need to inject everywhere explicitly, in this
         |  case let's discuss Future[+T]""".stripMargin) {
-      pending
+      
+      import scala.concurrent._
+      
+      implicit val executionContext: ExecutionContext =
+        ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+
+      println("Before future: " + Thread.currentThread().getName)
+
+      val f = Future {
+        Thread.sleep(1000)
+        println("In the future: " + Thread.currentThread().getName)
+        100 + 50
+      }
+
+      println("After future: " + Thread.currentThread().getName)
+
+      f.foreach(println)
+
+      Thread.sleep(1500)
     }
 
 
     it( """can bring up any implicit directly by merely calling up implicitly""") {
-      pending
+      case class IceCream(name:String)
+      case class Scoops(n:Int, flavor:IceCream)
+
+      implicit val flavorOfTheDay: IceCream = IceCream("Pirate's Cove")
+
+      def orderFlavorOfTheDay(n:Int) = {
+        Scoops(n, implicitly[IceCream])
+      }
+
+      orderFlavorOfTheDay(2) should be (Scoops(2, IceCream("Pirate's Cove")))
     }
 
     it(
       """the implicit group parameter list, can contain more than one parameter, but
         |  needs to be in the same implicit parameter group""".stripMargin) {
-      pending
+
+      implicit val bonus = 5000
+      implicit val currency = "Euro"
+
+      def calculateYearRate(amount:Int)(implicit bonus:Int, currency:String) = {
+        amount + bonus + " " + currency
+      }
+
+      calculateYearRate(60000) should be ("65000 Euro")
     }
 
     it( """can also be replaced with default parameters, choose accordingly""") {
-      pending
-    }
+      def calculateYearRate(amount:Int, bonus:Int = 5000, currency:String = "Euro") = {
+        amount + bonus + " " + currency
+      }
 
+      calculateYearRate(60000) should be ("65000 Euro")
+    }
 
     it(
       """Christopher A. Question: if you have a List[String] implicitly will it try
         | to inject into a List[Double]?""".stripMargin) {
-      pending
+
+      implicit val listOfString: List[String] = List("Foo", "Bar", "Baz")
+      implicit val listOfDouble: List[Double] = List(1.0, 44.0, 3.1525)
+
+      val result = implicitly[List[Double]]
+
+      result should be (List(1.0, 44.0, 3.1525))
     }
 
 
@@ -64,7 +127,17 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  in the Int class.  This is what we call implicit wrappers.
         |  First we will use a conversion method.""".stripMargin) {
 
-      pending
+      class IntWrapper(x:Int) {
+        def isOdd:Boolean = x % 2 != 0
+        def isEven:Boolean = !isOdd
+      }
+
+      import scala.language.implicitConversions
+
+      implicit def int2IntWrapper(x:Int): IntWrapper = new IntWrapper(x)
+
+      40.isOdd should be (false)
+      40.isEven should be (true)
     }
 
 

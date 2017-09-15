@@ -295,8 +295,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
           case b: String => "String"
           case c: (_, _) => "Tuple 2"
           case d: (_, _, _) => "Tuple 3"
-          case e:
-            Number => "Another number"
+          case e: Number => "Another number"
         }
       }
       whatDoIHave_?("Hello") should be("String")
@@ -398,7 +397,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       case class PhoneNumber(countryCode: String, areaCode: String, prefix: String, suffix: String)
 
       def convertStringToPhoneNumber(s: String): Option[PhoneNumber] = {
-        val PlainPhoneNumberRegex = """(\d{3})-(\d{4})""".r //555-4044
+        val PlainPhoneNumberRegex: Regex = """(\d{3})-(\d{4})""".r //555-4044
         val AreaCodePhoneNumberRegex =
           """(\d{3})-(\d{3})-(\d{4})""".r //915-444-3912
         val AllPhoneNumberRegex =
@@ -504,7 +503,6 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
         }
       }
     }
-
 
     it(
       """catch up: can also extract from an instance just in case it is the instance that contains logic
