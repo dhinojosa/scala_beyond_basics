@@ -15,24 +15,21 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  and call it from inside a method which uses a multiple parameter list where one
         |  one group would """.stripMargin) {
 
-      //val invisibleMap = {Class[Int]:100}
-
+      //[Int, 100]
       implicit val rate = 100
-      //bunch of code
 
-      def calcPayment(hours: Int)(implicit r: Int) = hours * r
+      def calc(hours: Int)(implicit rt: Int) = hours * rt
 
-      calcPayment(50) should be(5000)
+      calc(50) should be(5000)
     }
 
     it("""will allow you to place something manually, if you want to override the implicit value""".stripMargin) {
 
       implicit val rate = 100
-      //bunch of code
 
-      def calcPayment(hours: Int)(implicit r: Int) = hours * r
+      def calc(hours: Int)(implicit rt: Int) = hours * rt
 
-      calcPayment(50)(150) should be(7500)
+      calc(50)(400) should be(20000)
     }
 
     it(
@@ -40,33 +37,14 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  worth noting that what Scala doing are compile time tricks for implicit. One strategy is to
         |  wrap a value in a type to avoid conflict""".stripMargin) {
 
-      case class Rate(value: Int)
-      case class Age(value: Int)
-
+      case class Rate(x: Int)
+      case class Age(x: Int)
       implicit val rate = Rate(100)
       implicit val age = Age(40)
 
-      def calcPayment(hours: Int)(implicit r: Rate) = r match {
-        case Rate(x) => hours * x
-        case _ => 0
-      }
+      def calc(hours: Int)(implicit rt: Rate) = hours * rate.x
 
-      calcPayment(50) should be(5000)
-    }
-
-
-    it(
-      """test with implicits with type alias? No we need a different type""".stripMargin) {
-
-      type Rate = Int
-      type Age = Int
-
-      implicit val rate: Rate = 100
-      implicit val age: Age = 40
-
-      def calcPayment(hours: Int)(implicit r: Rate) = hours * r
-
-      //calcPayment(50) should be(5000)
+      calc(50) should be(5000)
     }
 
 
@@ -77,67 +55,61 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
       import scala.concurrent._
 
-      implicit val executionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3))
+      implicit val executionContext =
+        ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
 
-      val f = Future.apply {
+      val f = Future {
+        println(Thread.currentThread().getName)
         Thread.sleep(2000)
         100 + 40
       }
 
-      f.foreach(a => println(a))
+      f.foreach(a => println(s"We got an answer from our Future: $a"))
     }
 
 
     it( """can bring up any implicit directly by merely calling up implicitly""") {
       case class IceCream(name: String)
       case class Scoops(num: Int, flavor: IceCream)
-      implicit val flavorOfDay = IceCream("Springtime Bunny Chocolate")
+      implicit val flavorOfTheDay = IceCream("St. Patty Cabbage")
 
-      def orderIceCream(num: Int) = {
-        Scoops(num, implicitly)
+      def orderIceCream(num: Int)(implicit flavor: IceCream) = Scoops(num, flavor)
+
+      def orderIceCream2(num: Int): Scoops = {
+        Scoops(num, implicitly[IceCream])
       }
 
-      orderIceCream(3) should be(Scoops(3, flavorOfDay))
     }
-
-    it("definition of closure") {
-      class Foo(x: Int) {
-        def bar = (y: Int) => x + y
-      }
-
-      val foo = new Foo(10)
-      val fun = foo.bar _
-
-      fun()(12) should be(22)
-    }
-
 
     it(
       """the implicit group parameter list, can contain more than one parameter, but
         |  needs to be in the same implicit parameter group""".stripMargin) {
+
       implicit val bonus = 5000
       implicit val currency = "Euro"
-      implicit val vacation: Option[Int] = Some(100)
 
-      def calcYearRate(amount: Int)(implicit b: Int, c: String, d: Option[Int]) = amount + b + " " + c
+      def calcYearRate(amount: Int)(implicit bonus: Int, currency: String) = {
+        amount + bonus + " " + currency
+      }
 
-      calcYearRate(50000) should be("55000 Euro")
+      calcYearRate(60000) should be("65000 Euro")
     }
 
     it( """can also be replaced with default parameters, choose accordingly""") {
-      def calcYearRate(amount: Int, b: Int = 5000, c: String = "Euro") = amount + b + " " + c
+      def calcYearRate(amount: Int, bonus: Int = 5000, currency: String = "Euro") = {
+        amount + bonus + " " + currency
+      }
 
-      calcYearRate(50000) should be("55000 Euro")
+      calcYearRate(60000) should be("65000 Euro")
     }
 
 
     it("""Christopher A. Question: List[String] and List[Double]""") {
-      implicit val listOfString = List("Foo", "Bar")
-      implicit val listOfInt = List(1, 3, 4, 5)
+      implicit val strings = List("Foo", "Bar", "Baz")
+      implicit val doubles = List(1.0, 2.0, 3.0)
 
-      def foo(i: Int)(implicit col: List[String]) = col.size * i
-
-      foo(4) should be(8)
+      val doublesImpl = implicitly[List[Double]]
+      doublesImpl.foldLeft(0.0)(_ + _) should be(6.0)
     }
 
 
@@ -148,39 +120,37 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  in the Int class.  This is what we call implicit wrappers.
         |  First we will use a conversion method.""".stripMargin) {
 
-      import scala.language.implicitConversions
-
       class IntWrapper(x: Int) {
         def isOdd: Boolean = x % 2 != 0
 
         def isEven: Boolean = !isOdd
       }
 
+      import scala.language.implicitConversions
+
       implicit def int2IntWrapper(x: Int): IntWrapper = new IntWrapper(x)
 
-      10.isOdd should be(false)
-      11.isOdd should be(true)
-      11.isEven should be(false)
-      11.isOdd should be(true)
+      40.isOdd should be(false)
+      25.isOdd should be(true)
+      10.isEven should be(true)
     }
 
 
     it( """Implicit wrappers can be created using a function and is often easier to mental map.""".stripMargin) {
-      import scala.language.implicitConversions
-
       class IntWrapper(x: Int) {
         def isOdd: Boolean = x % 2 != 0
 
         def isEven: Boolean = !isOdd
       }
 
-      //[Int => IntWrapper, int2IntWrapper]
+      import scala.language.implicitConversions
+
       implicit val int2IntWrapper = (x: Int) => new IntWrapper(x)
 
-      10.isOdd should be(false)
-      11.isOdd should be(true)
-      11.isEven should be(false)
-      11.isOdd should be(true)
+      40.isOdd should be(false)
+      25.isOdd should be(true)
+      10.isEven should be(true)
+
     }
 
     it(
@@ -199,33 +169,32 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         def isEven: Boolean = !isOdd
       }
 
-      10.isOdd should be(false)
-      11.isOdd should be(true)
-      11.isEven should be(false)
-      11.isOdd should be(true)
+      40.isOdd should be(false)
+      25.isOdd should be(true)
+      10.isEven should be(true)
+
+      val t = 1 -> "One" //implicit trickery!
+
     }
 
     it(
       """can also convert things to make it fit into a particular API,
         | this is called implicit conversion,
         | in this scenario we will use a method""".stripMargin) {
-
       import scala.language.implicitConversions
 
       sealed abstract class Currency
-      case class Dollar(amt: Int) extends Currency
-      case class Yen(amt: Int) extends Currency
+      case class Dollar(value: Int) extends Currency
+      case class Yen(value: Int) extends Currency
 
       implicit def int2Dollar(x: Int): Dollar = Dollar(x)
 
-      implicit def int2Yen(x: Int): Yen = Yen(x)
+      def addDollars(x: Dollar, y: Dollar): Dollar = Dollar(x.value + y.value)
 
-      def addDollars(x: Dollar, y: Dollar): Dollar = Dollar(x.amt + y.amt)
+      addDollars(50, 100) should be(Dollar(150))
 
-      def addYen(x: Yen, y: Yen): Yen = Yen(x.amt + y.amt + 100)
-
-      addDollars(100, 150) should be(Dollar(250))
-      addYen(100, 150) should be(Yen(350))
+      val a = BigInt(4000)
+      (a + 100) should be(BigInt(4100))
     }
 
     it(
@@ -235,18 +204,14 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       import scala.language.implicitConversions
 
       sealed abstract class Currency
-      case class Dollar(amt: Int) extends Currency
-      case class Yen(amt: Int) extends Currency
+      case class Dollar(value: Int) extends Currency
+      case class Yen(value: Int) extends Currency
 
       implicit val int2Dollar = (x: Int) => Dollar(x)
-      implicit val int2Yen = (x: Int) => Yen(x)
 
-      def addDollars(x: Dollar, y: Dollar): Dollar = Dollar(x.amt + y.amt)
+      def addDollars(x: Dollar, y: Dollar): Dollar = Dollar(x.value + y.value)
 
-      def addYen(x: Yen, y: Yen): Yen = Yen(x.amt + y.amt + 100)
-
-      addDollars(100, 150) should be(Dollar(250))
-      addYen(100, 150) should be(Yen(350))
+      addDollars(50, 100) should be(Dollar(150))
     }
 
     it(
@@ -256,23 +221,13 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  We can investigate this by looking at
         |  the documentation.""".stripMargin) {
 
-      val f: scala.Float = 400.3f
-      val f2: scala.Float = 401.9f
+      val f: scala.Float = 3000.00f
+      val f2: scala.Float = 100.00f
+
       val result = java.lang.Math.min(f, f2)
-      result should be(400.3f)
+
+      result should be(100.00f)
     }
-  }
-
-  object MyPredef {
-
-    import scala.language.implicitConversions
-
-    implicit class IntWrapper(x: Int) {
-      def isOdd: Boolean = x % 2 != 0
-
-      def isEven: Boolean = !isOdd
-    }
-
   }
 
   describe("Locating implicits recipes") {
@@ -280,6 +235,17 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """has a common way, to store that particular implicit
         |  recipe in an object that makes should make
         |  sense and then import that object""".stripMargin) {
+
+      //Put this in a separate file
+      object MyPredef {
+
+        implicit class IntWrapper(x: Int) {
+          def isOdd: Boolean = x % 2 != 0
+
+          def isEven: Boolean = !isOdd
+        }
+
+      }
 
       import MyPredef._
       10.isOdd should be(false)
@@ -291,28 +257,27 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
         import scala.language.implicitConversions
 
-        implicit def tuple2Artist(t: (String, String)): Artist = new Artist(t._1, t._2)
+        implicit def tupleToArtist(t: (String, String)): Artist = new Artist(t._1, t._2)
       }
 
-      def playPerformance(a: Artist) = s"${a.firstName} ${a.lastName} is playing tonight"
+      def playArtist(a: Artist) = s"${a.firstName} is onstage"
 
-      val t2 = ("Celine", "Dion")
-      playPerformance(t2)
+      playArtist("Stevie" -> "Wonder") should be("Stevie is onstage")
     }
 
     it( """can also use a package object to store some of these implicits""") {
-      def numItems(list:List[String]) = list.reduce((total, next) => next + total)
+      def numItems(list: List[String]) = list.reduce((total, next) => total + next)
 
-      val t = (3, "Whoa")
-      numItems(t) should be ("WhoaWhoaWhoa")
+      numItems(3 -> "Whoa") should be("WhoaWhoaWhoa")
     }
 
     it("""can use JavaConverters to convert a collection in Java to Scala and vice versa""") {
 
       import scala.collection.JavaConverters._
-      import java.time.ZoneId
-
-      ZoneId.getAvailableZoneIds.asScala.toSet.filter(s => s.startsWith("America"))
+      import java.time._
+      ZoneId.getAvailableZoneIds.asScala.toList.filter(_.startsWith("America"))
+        .map(s => s.split("/")(1)).filter(_.startsWith("E")).sorted
+      pending
     }
   }
 
@@ -322,23 +287,23 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         | then within you can treat an object as an object of that type. It is unorthodox, and has since been
         | deprecated.""".stripMargin) {
 
-      class Employee(val firstName:String, val lastName:String)
+      class Employee(val firstName: String, val lastName: String)
+
       import scala.language.implicitConversions
 
-      implicit def str2Employee(s:String):Employee = {
-          s.split(" ").toList match {
-            case Nil => new Employee("John", "Anon")
-            case fn :: Nil => new Employee(fn, "Anon")
-            case fn :: ln :: Nil => new Employee(fn, ln)
-            case fn :: ln :: _ => new Employee(fn, ln)
-          }
+      implicit def str2Employee(str: String): Employee = {
+        str.split(" ").toList match {
+          case Nil => new Employee("John", "Doe")
+          case fn :: Nil => new Employee(fn, "Doe")
+          case fn :: ln :: _ => new Employee(fn, ln)
+        }
       }
 
-      def hireEmployee[A <% Employee](a:A):String = {
-        s"Hired ${a.firstName}!"
+      def hireEmployee[A](a: A)(implicit ev: A => Employee) = {
+        s"Hired ${a.firstName} ${a.lastName}"
       }
 
-      hireEmployee("Bob Henderson") should be ("Hired Bob!")
+      hireEmployee("Joe Armstrong") should be("Hired Joe Armstrong")
     }
   }
 
@@ -353,22 +318,25 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         | equivalent to (t:T)(implicit w:WrappedType[T])
         | let's try it with """.stripMargin) {
 
-        trait Loggable[T] {
-           def log(t:T):String
-        }
+      trait Loggable[T] {
+        def log(t: T): String
+      }
 
-        implicit val employee2String:Loggable[Employee] = new Loggable[Employee] {
-          override def log(t: Employee): String = s"!${t.firstName} ${t.lastName}!"
-        }
+      class Employee(val firstName: String, val lastName: String)
 
-        class Employee(val firstName:String, val lastName:String)
+      implicit val loggable: Loggable[Employee] = new Loggable[Employee] {
+        override def log(t: Employee): String =
+          s"Employee{firstName:${t.firstName}, lastName:${t.lastName}}"
+      }
 
-        def toStringz[T:Loggable](t:T):String = {
-           val lg = implicitly[Loggable[T]]
-           lg.log(t)
-        }
+      //implicitly Loggable[T]
+      def writeItOut[T: Loggable](t: T) = {
+        val loggable = implicitly[Loggable[T]]
+        loggable.log(t)
+      }
 
-        toStringz(new Employee("Sarah", "Thompson")) should be ("!Sarah Thompson!")
+      writeItOut(new Employee("Carla", "Sanchez")) should be("Employee{firstName:Carla, lastName:Sanchez}")
+
     }
   }
 
@@ -381,15 +349,16 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """uses one operator, =:= which is actually the full type =:=[A,B] that
         |  will to see if something is of the same type""".stripMargin) {
 
-       class MyTuple2[A, B](val a:A, val b:B) {
-         def first: A = a
-         def second:B = b
-         def toList(implicit ev: A =:= B):List[A] = List(a, b).asInstanceOf[List[A]]
-       }
+      class MyPair[A, B](val a: A, val b: B) {
+        def first: A = a
 
-       val myTuple2 = new MyTuple2(4.0, 5.0)
-       val list = myTuple2.toList
-       list.apply(1)
+        def second: B = b
+
+        def toList(implicit x: A =:= B): List[A] = List(a, b).asInstanceOf[List[A]]
+      }
+
+      val myPair = new MyPair(4, 10)
+      myPair.toList should be(List(4, 10))
     }
 
     it("""uses the operator, <:< which will test if A is a subtype of B""") {
@@ -402,16 +371,15 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
       import scala.reflect.runtime.universe._
 
-      def matchList[A](list:List[A])(implicit tt:TypeTag[A]):String = {
-         tt.tpe match {
-           case y if y =:= typeOf[Int] => "List of Int"
-           case x if x =:= typeOf[String] => "List of String"
-           case z if z =:= typeOf[Double] => "List of Double"
-           case _ => "List of Unknown"
-         }
+      def matchList[A](list: List[A])(implicit tt: TypeTag[A]) = {
+        tt.tpe match {
+          case t if t =:= typeOf[Int] => "List of Ints"
+          case t if t =:= typeOf[String] => "List of String"
+          case _ => "Unknown"
+        }
       }
 
-      matchList(List("Foo", "Bar", "Baz")) should be ("List of String")
+      matchList(List(1, 2, 3, 4)) should be("List of Ints")
     }
   }
 
@@ -424,11 +392,54 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """can be used to determine equality, so whether than make equals inside of an class,
         | it is now an outside concern""".stripMargin) {
 
-       pending
+      class Employee(val firstName: String, val lastName: String)
+
+      trait Eq[T] {
+        def equals(a: T, b: T): Boolean
+      }
+
+      implicit val employeeEquals = new Eq[Employee]() {
+        override def equals(a: Employee, b: Employee): Boolean = {
+          a.firstName == b.firstName &&
+            a.lastName == b.lastName
+        }
+      }
+
+      def equals[A](a: A, b: A)(implicit eq: Eq[A]): Boolean = eq.equals(a, b)
+
+      val x = new Employee("Carla", "Ray")
+      val x2 = new Employee("Carla", "Ray")
+      val y = new Employee("Venkat", "Subramaniam")
+
+      equals(x, x2) should be(true)
+      equals(x2, y) should be(false)
     }
 
     it("can be used for ordering") {
-       pending
+      case class Employee(firstName: String, lastName: String)
+
+      object EmployeeOrdering {
+        implicit val employeeByLastNameAscOrdering = new Ordering[Employee]() {
+          override def compare(x: Employee, y: Employee): Int = {
+            x.lastName.compareTo(y.lastName)
+          }
+        }
+
+        implicit val employeeByFirstNameAscOrdering = new Ordering[Employee]() {
+          override def compare(x: Employee, y: Employee): Int = {
+            x.firstName.compareTo(y.firstName)
+          }
+        }
+      }
+
+      import EmployeeOrdering.employeeByFirstNameAscOrdering
+
+      val list = List(Employee("Michael", "Jackson"),
+        Employee("Janis", "Joplin"),
+        Employee("Zoe", "Zanzibar"),
+        Employee("Justin", "Bieber"))
+
+      list.sorted.head.lastName should be ("Joplin")
     }
   }
 }
