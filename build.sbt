@@ -4,11 +4,7 @@ version := "1.0-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
+fork := true
+
 libraryDependencies ++= Seq("org.scalactic" %% "scalactic" % "3.0.0" % "test",
                             "org.scalatest" %% "scalatest" % "3.0.0" % "test")
-
-EclipseKeys.withSource := true
-
-EclipseKeys.withJavadoc := true
-
-EclipseKeys.executionEnvironment := Some(EclipseExecutionEnvironment.JavaSE18)
