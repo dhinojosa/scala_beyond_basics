@@ -413,6 +413,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """uses .r after a String to Convert it to a Regex Type, from there groups can can be determined"""
         .stripMargin) {
+
       case class PhoneNumber(countryCode: String, areaCode: String, prefix: String, suffix: String)
 
       def convertString2PhoneNumber(pn: String): Option[PhoneNumber] = {
