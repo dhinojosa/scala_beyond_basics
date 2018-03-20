@@ -1,7 +1,9 @@
 package com.ora.scalabeyondbasics
 
 import org.scalatest.{FunSpec, Matchers}
+
 import scala.annotation.tailrec
+import scala.util.matching.Regex
 
 class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
 
@@ -326,7 +328,17 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it( """also works with a scala.collection.immutable.Stream""") {
-      pending
+      def from(x: Int): Stream[Int] = x #:: from(x + 1)
+      def factorials(): Stream[Int] = from(1).scan(1)(_ * _)
+      def secondStream[A](x: Stream[A]): Option[A] = {
+        x match {
+          case Stream.Empty => None // Shouldn't happen
+          case _ #:: Stream.Empty => None //0!
+          case _ #:: snd #:: Stream.Empty => Some(snd) //1!
+          case _ #:: snd #:: rest => Some(snd) //1#
+        }
+      }
+      secondStream(factorials()) should be(Some(1))
     }
 
     it( """should also have guards just in case""") {
@@ -357,19 +369,23 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """can do compound matching where one item is in another, using the List() form""")
     {
-      pending
+      val List(Employee(fn, ln)) = List(Employee("Bertrand", "Russell"))
+      fn should be("Bertrand")
+      ln should be("Russell")
     }
 
     it(
       """can do compound matching layers deep, like an Employee,
         |  in a Some, in List, using the :: form""".stripMargin) {
-      pending
+      val Some(Employee(fn, ln)) :: Nil = List(Some(Employee("Mark", "Twain")))
+      fn should be("Mark")
+      ln should be("Twain")
     }
 
     it(
       """can do compound matching layers deep, like an Employee, in a Some, in List, using the List() form""")
     {
-      val Some(Employee(fn, ln)) :: Nil = List(Some(Employee("Mark", "Twain")))
+      val List(Some(Employee(fn, ln))) = List(Some(Employee("Mark", "Twain")))
       fn should be("Mark")
       ln should be("Twain")
     }
@@ -377,13 +393,18 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """can be as simple as assignments with a custom case class and
         |  it must be a case class or class with an extractor""".stripMargin) {
-      pending
+      val Employee(fn, ln) = Employee("Harry", "Truman")
+      fn should be("Harry")
+      ln should be("Truman")
     }
 
     it(
       """can match the whole custom case class when provided with @
         |  along with the pattern match itself""".stripMargin) {
-      pending
+      val a@Employee(fn, ln) = Employee("Lisa", "Simpson")
+      fn should be("Lisa")
+      ln should be("Simpson")
+      a should be(Employee("Lisa", "Simpson"))
     }
 
   }
@@ -392,7 +413,20 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """uses .r after a String to Convert it to a Regex Type, from there groups can can be determined"""
         .stripMargin) {
-      pending
+      case class PhoneNumber(countryCode: String, areaCode: String, prefix: String, suffix: String)
+
+      def convertString2PhoneNumber(pn: String): Option[PhoneNumber] = {
+        val PhoneNumberPlainRegex: Regex = """(\d{3})-(\d{4})""".r
+        val PhoneNumberWithAreaRegex: Regex = """(\d{3})-(\d{3})-(\d{4})""".r
+        val PhoneNumberWithEverythingRegex: Regex = """(\d{1,3})-(\d{3})-(\d{3})-(\d{4})""".r
+        pn match {
+          case PhoneNumberPlainRegex(pre, suf) => Some(PhoneNumber("1", "000", pre, suf))
+          case PhoneNumberWithAreaRegex(ac, pre, suf) => Some(PhoneNumber("1", ac, pre, suf))
+          case PhoneNumberWithEverythingRegex(cc, ac, pre, suf) => Some(PhoneNumber(cc, ac, pre, suf))
+          case _ => None
+        }
+      }
+      convertString2PhoneNumber("1-303-202-4001") should be(Some(PhoneNumber("1", "303", "202", "4001")))
     }
   }
 
@@ -457,22 +491,50 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
 
     it( """while building a pattern match off of another unapply""".stripMargin)
     {
-      pending
+      val r = (40, 120)
+      val result = r match {
+        case (Even(_), Even(_)) => "Two Evens"
+        case (Even(_), Odd(_)) => "Even, Odd"
+        case (Odd(_), Even(_)) => "Odd, Even"
+        case (Odd(_), Odd(_)) => "Two Odds"
+      }
+      result should be("Two Evens")
+
     }
 
     it(
       """can also be used in composing partial functions to form a complete function""")
     {
-      pending
+      val result = List(1, 2, 3, 4, 5, 6).map { case Even(x) => x * 2; case Odd(y) => y * 3 }
+      result should be(List(3, 4, 9, 8, 15, 12))
     }
   }
 
   describe("Custom pattern matching with an instance") {
+
+    class AllInt[B](val g:(Int, Int) => Int) {
+      val regex = """\d+""".r
+      def unapply(s:String):Option[Int] = {
+        val it = regex.findAllIn(s)
+        if (it.isEmpty) None else {
+          Some(regex.findAllIn(s).map(_.toInt).toList.reduce(g))
+        }
+      }
+    }
+
     it(
       """can also extract from an instance just in case it is the instance that contains logic
         |  to extract information, this is the technique used to for regex grouping"""
         .stripMargin) {
-      pending
+      val question = "What is the total of 100, 300, 22, 97, 230, 950, and 411?"
+      val sumInt = new AllInt(_ + _)
+
+      val result = question match {
+        case sumInt(r) => s"Captured: $r"
+        case _ => "Unknown"
+      }
+
+      result should be ("Captured: 2110")
     }
   }
 
@@ -530,8 +592,6 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       }
 
       result should be("The movie presented is of the Science Fiction genre")
-
-
     }
   }
 
