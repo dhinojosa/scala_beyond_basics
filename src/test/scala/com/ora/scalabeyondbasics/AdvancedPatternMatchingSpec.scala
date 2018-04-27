@@ -114,34 +114,33 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       trd should be(100)
     }
 
-    it(
-      """can do a list where you want to capture any number of items and
-        |  keep the remainder in an extra list using the :: form""".stripMargin) {
+    it("""can do a list where you want to capture any number of items and
+        |  keep the remainder in an extra list using the
+        |  :: form""".stripMargin) {
       val f :: s :: xs = (1 to 5).toList
       f should be(1)
       s should be(2)
       xs should be(List(3, 4, 5))
     }
 
-    it(
-      """can do a list where you want to capture any number of items and
-        |  keep the remainder in an extra list using the List() form""".stripMargin) {
+    it("""can do a list where you want to capture any number of items and
+        |  keep the remainder in an extra list using the
+        |  List() form""".stripMargin) {
       val List(f, s, xs@_*) = (1 to 5).toList
       f should be(1)
       s should be(2)
       xs should be(List(3, 4, 5))
     }
 
-    it(
-      """can do a list where you want to capture any number of items and
-        |  ignore the remainder in an extra list using the List() form""".stripMargin) {
+    it("""can do a list where you want to capture any number of items and
+        |  ignore the remainder in an extra list using
+        |  the List() form""".stripMargin) {
       val List(fst, snd, _*) = (1 to 5).toList
       fst should be(1)
       snd should be(2)
     }
 
-    it(
-      """can also capture a list with @ to capture the entire list while
+    it("""can also capture a list with @ to capture the entire list while
         |  at the same time capturing elements of a list and the remainder
         |  here using the :: form""".stripMargin) {
       val fst :: snd :: _ = (1 to 5).toList
@@ -214,7 +213,8 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it(
-      """should have a None in a pattern match, though we have not covered it.  This is just one way
+      """should have a None in a pattern match, though we have not
+        |  covered it.  This is just one way
         |  to get the information from an Option[T]""".stripMargin) {
       pending
     }
@@ -227,7 +227,8 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       pending
     }
 
-    it( """of course order is always important in pattern matching, particularly with types""") {
+    it("""of course order is always important in pattern matching,
+        |  particularly with types""".stripMargin) {
       pending
     }
 
@@ -241,22 +242,23 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
   }
 
   describe("A Pattern Match with the following custom class") {
-    it( """can do compound matching where one item is in another, using the :: form""") {
+    it("""can do compound matching where one item is in another,
+        |  using the :: form""".stripMargin) {
       pending
     }
 
-    it( """can do compound matching where one item is in another, using the List() form""") {
+    it("""can do compound matching where one item is in another,
+        |  using the List() form""".stripMargin) {
       pending
     }
 
-    it(
-      """can do compound matching layers deep, like an Employee,
+    it("""can do compound matching layers deep, like an Employee,
         |  in a Some, in List, using the :: form""".stripMargin) {
       pending
     }
 
-    it(
-      """can do compound matching layers deep, like an Employee, in a Some, in List, using the List() form""") {
+    it("""can do compound matching layers deep, like an Employee, in a Some,
+        |  in List, using the List() form""".stripMargin) {
       pending
     }
 
@@ -275,16 +277,20 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
   }
 
   describe("A Regular Pattern Expression Match") {
-    it("""uses .r after a String to Convert it to a Regex Type, from there groups can can be determined""".stripMargin) {
+    it(
+      """uses .r after a String to Convert it to a Regex Type, from
+        |  there groups can can be determined""".stripMargin) {
       pending
     }
   }
 
   describe("Partial Functions") {
     it(
-      """is like a function, but with an added method called isDefined.  isDefined() returns
-        | true or false, it also has an `apply` method to invoke the function iff isDefined returns true.
-        | Partial Functions together should form a complete function.""".stripMargin) {
+      """is like a function, but with an added method called isDefined.
+        |  isDefined() returns true or false, it also has an `apply` method to
+        |  invoke the function iff isDefined returns true.
+        |  Partial Functions together should form a complete
+        |  function.""".stripMargin) {
 
 
       val doubleEvens = new PartialFunction[Int, Int]() {
@@ -302,32 +308,36 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       pending
     }
 
-    it( """can also be trimmed down inline with case statements compare the above with the following below""") {
+    it("""can also be trimmed down inline with case statements compare the
+        |  above with the following below""".stripMargin) {
       pending
     }
   }
 
   describe("Custom pattern matching") {
 
-    it(
-      """uses unapply to extract elements for a pattern match so you can do your own pattern matching,
-        |  the unapply method should return an Option and either a tuple or list of the parts""".stripMargin) {
+    it("""uses unapply to extract elements for a pattern match so you can
+        |  do your own pattern matching, the unapply method should return
+        |  an Option and either a tuple or list of the parts""".stripMargin) {
       pending
     }
 
-    it( """while building a pattern match off of another unapply""".stripMargin) {
+    it("""while building a pattern match off of another
+        |  unapply""".stripMargin) {
       pending
     }
 
-    it( """can also be used in composing partial functions to form a complete function""") {
+    it("""can also be used in composing partial functions to form a
+        |  complete function""".stripMargin) {
       pending
     }
   }
 
   describe("Custom pattern matching with an instance") {
-    it(
-      """can also extract from an instance just in case it is the instance that contains logic
-        |  to extract information, this is the technique used to for regex grouping""".stripMargin) {
+    it("""can also extract from an instance just in case it is the
+        |  instance that contains logic
+        |  to extract information, this is the technique used to for
+        |  regex grouping""".stripMargin) {
       pending
     }
   }
@@ -342,17 +352,19 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
 
     class Genre(val name: String)
     object Genre {
-      def unapply(arg: Genre): Option[String] = Some(arg.name)
+
     }
 
     class Movie(val title: String, val year: Int, val genre: Genre)
     object Movie {
-      def unapply(arg: Movie): Option[(String, Int, Genre)] = Some(arg.title, arg.year, arg.genre)
+
     }
 
     it(
-      """Companion objects will generally have the unapply or unapplySeq for classes, this also means
-        |  that case classes create unapply automatically, but you can create or override your own
+      """Companion objects will generally have the unapply or unapplySeq
+        |  for classes, this also means
+        |  that case classes create unapply automatically, but you can
+        |  create or override your own
         |  particular rules""".stripMargin) {
       pending
     }
