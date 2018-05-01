@@ -431,6 +431,9 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
         override def apply(v1: Int): Int = v1 * 3
       }
 
+      val doubleEvens2:PartialFunction[Int, Int]  =
+            {case x:Int if x % 2 == 0 => x * 2}
+
       val function = doubleEvens orElse tripleOdds
       function(3) should be (9)
     }
@@ -517,7 +520,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
         }
       }
 
-      val allIntsSum = new AllInts(_ + _)
+      val allIntsSum = new AllInts((total, next) => total + next)
 
       val result = "The score is 10 to 20 with 2 minutes left on the clock" match {
         case allIntsSum(r) => s"Total: $r"
