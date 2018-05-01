@@ -178,7 +178,6 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       all should be(List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
     }
 
-
     it(
       """will always throw a Match Error if
         |  something doesn't match, for example here
@@ -432,12 +431,16 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
         override def apply(v1: Int): Int = v1 * 3
       }
 
-      pending
+      val function = doubleEvens orElse tripleOdds
+      function(3) should be (9)
     }
 
     it("""can also be trimmed down inline with case statements compare the
         |  above with the following below""".stripMargin) {
-      pending
+      val result = List(1,2,3)
+                  .map{case x:Int if x % 2 == 0 => x * 2;
+                       case y:Int if y % 2 != 0 => y * 3}
+      result should contain inOrder(3,4,9)
     }
   }
 
