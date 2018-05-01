@@ -394,7 +394,20 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """uses .r after a String to Convert it to a Regex Type, from
         |  there groups can can be determined""".stripMargin) {
-      pending
+
+      val AmericanTelephoneNumberRegex:Regex =
+            """1?\s*\((\d{3})\)\s*(\d{3})-(\d{4})""".r
+      val UKTelephoneNumberRegex:Regex =
+            """\+44\s*(d{2})\s*(d{4})\s*(d{4})""".r
+
+      val result = "1(505) 240-3023" match {
+        case AmericanTelephoneNumberRegex(ac, pre, suf) =>
+          s"American(ac: $ac, pre: $pre, suf: $suf)"
+        case UKTelephoneNumberRegex(ac, pre, suf) =>
+          s"UK(ac: $ac, pre: $pre, suf: $suf)"
+      }
+
+      result should be ("American(ac: 505, pre: 240, suf: 3023)")
     }
   }
 
@@ -494,7 +507,21 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
         |  instance that contains logic
         |  to extract information, this is the technique used to for
         |  regex grouping""".stripMargin) {
-      pending
+      class AllInts(f:(Int, Int) => Int) {
+        val r:Regex = """\d+""".r
+        def unapply(arg: String): Option[Int] = {
+          r.findAllIn(arg).toList.map(_.toInt).reduceOption(f)
+        }
+      }
+
+      val allIntsSum = new AllInts(_ + _)
+
+      val result = "The score is 10 to 20 with 2 minutes left on the clock" match {
+        case allIntsSum(r) => s"Total: $r"
+        case _ => "Unknown"
+      }
+
+      result should be ("Total: 32")
     }
   }
 
