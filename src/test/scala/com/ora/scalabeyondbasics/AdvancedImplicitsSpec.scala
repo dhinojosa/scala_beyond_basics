@@ -96,7 +96,7 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  more than one parameter, but needs to be in the same
         |  implicit parameter group""".stripMargin) {
 
-       implicit val a = 300
+       implicit val a: Int = 300
 
        def foo(x:Int)(implicit y:Int, s:String):String = (x * y) + s
 
@@ -439,14 +439,16 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     it("can be used for ordering") {
       class Employee(val firstName:String, val lastName:String)
       object Employee {
-        implicit val employeeOrderingByFirstName = new Ordering[Employee] {
-          override def compare(x: Employee, y: Employee): Int =
-            x.firstName.compareTo(y.firstName)
-        }
+        implicit val employeeOrderingByFirstName: Ordering[Employee] =
+          new Ordering[Employee] {
+            override def compare(x: Employee, y: Employee): Int =
+              x.firstName.compareTo(y.firstName)
+          }
 
-        implicit val employeeOrderingByLastName = new Ordering[Employee] {
-          override def compare(x: Employee, y: Employee): Int =
-            x.lastName.compareTo(y.lastName)
+        implicit val employeeOrderingByLastName: Ordering[Employee] =
+          new Ordering[Employee] {
+            override def compare(x: Employee, y: Employee): Int =
+              x.lastName.compareTo(y.lastName)
         }
       }
 
