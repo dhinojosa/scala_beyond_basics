@@ -300,7 +300,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         }
       }
 
-
       def hireEmployee[A <% Employee](e:A) =
         s"Hired Employee ${e.firstName} ${e.lastName}"
 
@@ -404,11 +403,11 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       }
 
       object MyPredef2 {
-        implicit val teamEqualsByCity = new Eq[Team] {
+        implicit val teamEqualsByCity: Eq[Team] = new Eq[Team] {
           override def isEqual(a: Team, b: Team): Boolean = a.city == b.city
         }
 
-        implicit val teamEqualsByMascot = new Eq[Team] {
+        implicit val teamEqualsByMascot: Eq[Team] = new Eq[Team] {
           override def isEqual(a: Team, b: Team): Boolean = a.mascot == b.mascot
         }
 
