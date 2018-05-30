@@ -403,26 +403,26 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         def isEqual(a:A, b:A):Boolean
       }
 
-      object MyPredef {
-        val teamEqualsByCity = new Eq[Team] {
+      object MyPredef2 {
+        implicit val teamEqualsByCity = new Eq[Team] {
           override def isEqual(a: Team, b: Team): Boolean = a.city == b.city
         }
 
-        val teamEqualsByMascot = new Eq[Team] {
+        implicit val teamEqualsByMascot = new Eq[Team] {
           override def isEqual(a: Team, b: Team): Boolean = a.mascot == b.mascot
         }
 
-        val teamEqualsByCityAndMascot: Eq[Team] = new Eq[Team] {
+        implicit val teamEqualsByCityAndMascot: Eq[Team] = new Eq[Team] {
           override def isEqual(a: Team, b: Team): Boolean =
             teamEqualsByCity.isEqual(a,b) && teamEqualsByMascot.isEqual(a,b)
         }
       }
 
-      import MyPredef.teamEqualsByCityAndMascot
+      import MyPredef2.teamEqualsByCity
 
-      def equals[A](a:A, b:A)(implicit eqtc:Eq[A]) = eqtc.isEqual(a,b)
+      def equals[A](a:A, b:A)(implicit eqtc:Eq[A]): Boolean = eqtc.isEqual(a,b)
 
-      def equals2[A:Eq](a:A, b:A) = {
+      def equals2[A:Eq](a:A, b:A): Boolean = {
         implicitly[Eq[A]].isEqual(a,b)
       }
 
