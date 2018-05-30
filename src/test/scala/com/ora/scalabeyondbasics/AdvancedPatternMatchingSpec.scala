@@ -394,13 +394,18 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     it(
       """can be as simple as assignments with a custom case class and
         |  it must be a case class or class with an extractor""".stripMargin) {
-      pending
+      val Employee(fn, ln) = Employee("Harry", "Truman")
+      fn should be("Harry")
+      ln should be("Truman")
     }
 
     it(
       """can match the whole custom case class when provided with @
         |  along with the pattern match itself""".stripMargin) {
-      pending
+      val a@Employee(fn, ln) = Employee("Lisa", "Simpson")
+      fn should be("Lisa")
+      ln should be("Simpson")
+      a should be(Employee("Lisa", "Simpson"))
     }
 
   }
@@ -503,15 +508,35 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it( """can also be used in composing partial functions to form a complete function""") {
-      pending
+      val result = List(1, 2, 3, 4, 5, 6).map { case Even(x) => x * 2; case Odd(y) => y * 3 }
+      result should be(List(3, 4, 9, 8, 15, 12))
     }
   }
 
   describe("Custom pattern matching with an instance") {
+
+    class AllInt[B](val g:(Int, Int) => Int) {
+      val regex = """\d+""".r
+      def unapply(s:String):Option[Int] = {
+        val it = regex.findAllIn(s)
+        if (it.isEmpty) None else {
+          Some(regex.findAllIn(s).map(_.toInt).toList.reduce(g))
+        }
+      }
+    }
+
     it(
       """can also extract from an instance just in case it is the instance that contains logic
         |  to extract information, this is the technique used to for regex grouping""".stripMargin) {
-      pending
+      val question = "What is the total of 100, 300, 22, 97, 230, 950, and 411?"
+      val sumInt = new AllInt(_ + _)
+
+      val result = question match {
+        case sumInt(r) => s"Captured: $r"
+        case _ => "Unknown"
+      }
+
+      result should be ("Captured: 2110")
     }
   }
 
