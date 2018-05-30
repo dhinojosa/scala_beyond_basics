@@ -529,7 +529,7 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
       """can also extract from an instance just in case it is the instance that contains logic
         |  to extract information, this is the technique used to for regex grouping""".stripMargin) {
       val question = "What is the total of 100, 300, 22, 97, 230, 950, and 411?"
-      val sumInt = new AllInt(_ + _)
+      val sumInt = new AllInt((x:Int, y:Int) => x + y)
 
       val result = question match {
         case sumInt(r) => s"Captured: $r"

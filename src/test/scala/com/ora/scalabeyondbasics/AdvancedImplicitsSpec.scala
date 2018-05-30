@@ -3,57 +3,122 @@ package com.ora.scalabeyondbasics
 import org.scalatest.{FunSpec, Matchers}
 
 class AdvancedImplicitsSpec extends FunSpec with Matchers {
+
+
   describe(
     """Implicits is like a Map[Class[A], A] where A is any object and it is tied into the scope,
       | and it is there when you need it, hence it is implicit. This provide a lot of great techniques that we
       | can use in Scala.""".stripMargin) {
 
+
+
     it(
       """is done per scope so in the following example, we will begin with an implicit value
         |  and call it from inside a method which uses a multiple parameter list where one
         |  one group would """.stripMargin) {
-      pending
+
+      implicit val rate: Int = 100
+
+      def calcPayment(hours:Int)(implicit n:Int) = hours * n
+
+      calcPayment(50) should be (5000)
     }
 
-    it("""will allow you to place something manually, if you want to override the implicit value""".stripMargin) {
-      pending
+    it(
+      """will allow you to place something manually,
+        |if you want to override the implicit value""".stripMargin) {
+      implicit val rate: Int = 100
+
+      def calcPayment(hours:Int)(implicit rate:Int) = hours * rate
+
+      calcPayment(50)(110) should be (5500)
     }
 
     it(
       """will gripe at compile time if there are two implicit bindings of the same type.  It's
         |  worth noting that what Scala doing are compile time tricks for implicit. One strategy is to
         |  wrap a value in a type to avoid conflict""".stripMargin) {
-      pending
-    }
 
+      case class Rate(value:Int)
+      case class Age(value:Int)
+
+      implicit val rate: Rate = Rate(100)
+      implicit val age: Age = Age(40)
+
+      def calcPayment(hours:Int)(implicit appleIsFruit:Rate) = hours * appleIsFruit.value
+
+      calcPayment(50) should be (5000)
+    }
 
     it(
       """is really used to bind services that require something and
         |  you don't particularly need to inject everywhere explicitly, in this
         |  case let's discuss Future[+T]""".stripMargin) {
-      pending
+
+      import scala.concurrent._
+      import java.util.concurrent.Executors
+
+      val executor = Executors.newFixedThreadPool(10)
+      implicit val executionContext: ExecutionContext = ExecutionContext.fromExecutor(executor)
+
+      val future = Future {
+        println(s"Thread-name: ${Thread.currentThread().getName}")
+        Thread.sleep(3000)
+        50 + 100
+      }
+
+      future.foreach(a => println(a))
     }
 
 
     it( """can bring up any implicit directly by merely calling up implicitly""") {
-      pending
+      case class IceCream(name: String)
+      case class Scoops(num:Int, flavor:IceCream)
+
+      implicit val flavorOfTheMonth: IceCream = IceCream("Rainbow Sherbet")
+
+      def orderIceCream(num:Int) = {
+        Scoops(num, implicitly[IceCream])
+      }
+
+      orderIceCream(4) should be (Scoops(4, IceCream("Rainbow Sherbet")))
+
     }
 
     it(
       """the implicit group parameter list, can contain more than one parameter, but
         |  needs to be in the same implicit parameter group""".stripMargin) {
-      pending
+
+      implicit val bonus = 1000
+      implicit val currency = "Euro"
+
+      def calcYearRate(amount:Int)(implicit bonus:Int, currency:String):String = {
+        amount + bonus + " " + currency
+      }
+
+      calcYearRate(60000) should be ("61000 Euro")
     }
 
     it( """can also be replaced with default parameters, choose accordingly""") {
-      pending
+
+      def calcYearRate(amount:Int, bonus:Int = 1000, currency:String = "Euro"):String = {
+        amount + bonus + " " + currency
+      }
+
+      calcYearRate(60000) should be ("61000 Euro")
     }
 
 
     it(
       """Christopher A. Question: if you have a List[String] implicitly will it try
         | to inject into a List[Double]?""".stripMargin) {
-      pending
+
+      implicit val listOfString = List("Foo", "Bar", "Baz")
+      implicit val listOfDouble = List(1.0, 2.0, 3.0)
+
+
+      val result = implicitly[List[Double]]
+      result(1) should be (2.0)
     }
 
 
@@ -64,12 +129,32 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  in the Int class.  This is what we call implicit wrappers.
         |  First we will use a conversion method.""".stripMargin) {
 
-      pending
+      class IntWrapper(x:Int) {
+        def isOdd: Boolean = x % 2 != 0
+        def isEven: Boolean = !isOdd
+      }
+
+      import scala.language.implicitConversions
+
+      implicit def int2IntWrapper(x:Int):IntWrapper = new IntWrapper(x)
+
+      10.isOdd should be (false)
+      10.isEven should be (true)
     }
 
 
     it( """Implicit wrappers can be created using a function and is often easier to mental map.""".stripMargin) {
-      pending
+      class IntWrapper(x:Int) {
+        def isOdd: Boolean = x % 2 != 0
+        def isEven: Boolean = !isOdd
+      }
+
+      import scala.language.implicitConversions
+
+      implicit def int2IntWrapper: Int => IntWrapper = (x:Int) => new IntWrapper(x)
+
+      10.isOdd should be (false)
+      10.isEven should be (true)
     }
 
     it(
@@ -80,21 +165,55 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  3. There can not be any colliding method name as that
         |     with the implicit outer scope""".stripMargin) {
 
-      pending
+      import scala.language.implicitConversions
+      implicit class IntWrapper(x:Int) {
+        def isOdd: Boolean = x % 2 != 0
+        def isEven: Boolean = !isOdd
+      }
+
+      10.isOdd should be (false)
+      10.isEven should be (true)
     }
 
     it(
       """can also convert things to make it fit into a particular API,
         | this is called implicit conversion,
         | in this scenario we will use a method""".stripMargin) {
-      pending
+
+      import scala.language.implicitConversions
+
+      sealed abstract class Currency
+      case class Dollar(value:Int) extends Currency
+      case class Yuan(value:Int) extends Currency
+      case class Euro(value:Int) extends Currency
+
+      def combine(x:Dollar, y:Dollar):Dollar = Dollar(x.value + y.value)
+
+      implicit def int2Dollar(i:Int):Dollar = Dollar(i)
+
+      combine(Dollar(100), Dollar(200)) should be (Dollar(300))
+      combine(100, 200) should be (Dollar(300))
     }
 
     it(
       """can also convert things to make it fit into a particular API,
         | this is called implicit conversion,
         | in this scenario we will use a function""".stripMargin) {
-      pending
+
+      import scala.language.implicitConversions
+
+      sealed abstract class Currency
+      case class Dollar(value:Int) extends Currency
+      case class Yuan(value:Int) extends Currency
+      case class Euro(value:Int) extends Currency
+
+      def combine(x:Dollar, y:Dollar):Dollar = Dollar(x.value + y.value)
+
+      implicit val int2Dollar: Int => Dollar = (i:Int) => Dollar(i)
+
+      combine(Dollar(100), Dollar(200)) should be (Dollar(300))
+      combine(100, 200) should be (Dollar(300))
+
     }
 
     it(
