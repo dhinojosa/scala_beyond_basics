@@ -4,6 +4,11 @@ import org.scalatest.{FunSpec, Matchers}
 
 class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
+  class Artist(val firstName:String, val lastName:String)
+  object Artist {
+    import scala.language.implicitConversions
+    implicit def tuple2Artist(t:(String, String)): Artist = new Artist(t._1, t._2)
+  }
 
   describe(
     """Implicits is like a Map[Class[A], A] where A is any object and it is tied into the scope,
@@ -223,7 +228,11 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         |  We can investigate this by looking at
         |  the documentation.""".stripMargin) {
 
-      pending
+      val f: scala.Float = 3002.0f
+      val f2: scala.Float = 30.0f
+
+      val result = java.lang.Math.max(f, f2)
+      result should be (3002.0f)
     }
   }
 
@@ -232,19 +241,43 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """has a common way, to store that particular implicit
         |  recipe in an object that makes should make
         |  sense and then import that object""".stripMargin) {
-      pending
+
+      object MyPredef {
+        import scala.language.implicitConversions
+        implicit class IntWrapper(x:Int) {
+          def isOdd: Boolean = x % 2 != 0
+          def isEven: Boolean = !isOdd
+        }
+      }
+
+      import MyPredef._
+      10.isOdd should be (false)
     }
 
     it( """can also use a companion object to store any implicit recipes""".stripMargin) {
-      pending
+      def playPerformer(a:Artist) = s"Playing performer ${a.firstName} ${a.lastName}"
+
+      playPerformer("Weird Al" -> "Yankovic") should be ("Playing performer Weird Al Yankovic")
     }
 
     it( """can also use a package object to store some of these implicits""") {
-      pending
+      def concatAll(xs:List[String]) = xs.reduce(_ + _)
+
+      concatAll(3, "Hello") should be ("HelloHelloHello")
+      concatAll((3, "Hello")) should be ("HelloHelloHello")
+      concatAll(3 -> "Hello") should be ("HelloHelloHello")
     }
 
-    it("""can use JavaConverters to convert a collection in Java to Scala and vice versa""") {
-       pending
+    it(
+      """can use JavaConverters to convert a collection in
+        | Java to Scala and vice versa""".stripMargin) {
+      import java.time._
+      import scala.collection.JavaConverters._
+
+      val result = ZoneId.getAvailableZoneIds.asScala.toList
+        .filter(_.startsWith("Asia")).map(s => s.split("/").last).sorted.size
+
+      result should be (98)
     }
   }
 
@@ -253,7 +286,25 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """Uses <% inside of a parameterized type declaration to determine if there is a conversion available
         | then within you can treat an object as an object of that type. It is unorthodox, and has since been
         | deprecated.""".stripMargin) {
-      pending
+
+      import scala.language.implicitConversions
+
+      class Employee(val firstName:String, val lastName:String)
+
+
+      implicit def stringToEmployee(s:String): Employee = {
+        val tokens = s.split(" ")
+        tokens.toList match {
+          case List(x) => new Employee(x, "Unknown")
+          case List(x, y, _*) => new Employee(x, y)
+        }
+      }
+
+
+      def hireEmployee[A <% Employee](e:A) =
+        s"Hired Employee ${e.firstName} ${e.lastName}"
+
+      hireEmployee("Joe Armstrong") should be ("Hired Employee Joe Armstrong")
     }
   }
 
@@ -267,7 +318,33 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       """uses the signature [T:WrappedType], which is
         | equivalent to (t:T)(implicit w:WrappedType[T])
         | let's try it with """.stripMargin) {
-      pending
+
+      trait Loggable[T] {
+        def log(t:T):String
+      }
+
+      class Employee(val firstName:String, val lastName:String)
+
+      object MyEmployeePredef {
+        implicit val lastThenFirst: Loggable[Employee] = new Loggable[Employee] {
+          override def log(t: Employee): String =
+            s"Employee: ${t.lastName}, ${t.firstName}"
+        }
+
+        implicit val firstThenLast: Loggable[Employee] = new Loggable[Employee] {
+          override def log(t: Employee): String =
+            s"Employee: ${t.firstName} ${t.lastName}"
+        }
+      }
+
+      import MyEmployeePredef.lastThenFirst
+
+      def writeItOut[A:Loggable](a:A) = {
+        val loggable = implicitly[Loggable[A]]
+        loggable.log(a)
+      }
+
+      writeItOut(new Employee("Carly", "Simon")) should be ("Employee: Simon, Carly")
     }
   }
 
@@ -279,7 +356,15 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     it(
       """uses one operator, =:= which is actually the full type =:=[A,B] that
         |  will to see if something is of the same type""".stripMargin) {
-      pending
+
+      class Pair[A,B](val a:A, val b:B) {
+        def first:A = a
+        def second:B = b
+        def toList(implicit ev: A =:= B):List[A] = List(a,b).asInstanceOf[List[A]]
+      }
+
+      //val myPair = new Pair(10, "Foo")
+      //myPair.toList
     }
 
     it("""uses the operator, <:< which will test if A is a subtype of B""") {
@@ -289,7 +374,17 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
   describe("Getting around Erasure Using TypeTags") {
     it("used to use Manifest but now uses a type tag to retrieve what is erased") {
-      pending
+
+      import scala.reflect.runtime.universe._
+      def matchList[A](list:List[A])(implicit tt:TypeTag[A]): String = {
+        tt.tpe match {
+          case x if x =:= typeOf[String] => "List of String"
+          case y if y =:= typeOf[Int] => "List of Int"
+          case _ => "Unknown"
+        }
+      }
+
+      matchList(List(1,2,3,4)) should be ("List of Int")
     }
   }
 
@@ -301,11 +396,64 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     it(
       """can be used to determine equality, so whether than make equals inside of an class,
         | it is now an outside concern""".stripMargin) {
-      pending
+
+      case class Team(city:String, mascot:String)
+
+      trait Eq[A] {
+        def isEqual(a:A, b:A):Boolean
+      }
+
+      object MyPredef {
+        val teamEqualsByCity = new Eq[Team] {
+          override def isEqual(a: Team, b: Team): Boolean = a.city == b.city
+        }
+
+        val teamEqualsByMascot = new Eq[Team] {
+          override def isEqual(a: Team, b: Team): Boolean = a.mascot == b.mascot
+        }
+
+        val teamEqualsByCityAndMascot: Eq[Team] = new Eq[Team] {
+          override def isEqual(a: Team, b: Team): Boolean =
+            teamEqualsByCity.isEqual(a,b) && teamEqualsByMascot.isEqual(a,b)
+        }
+      }
+
+      import MyPredef.teamEqualsByCityAndMascot
+
+      def equals[A](a:A, b:A)(implicit eqtc:Eq[A]) = eqtc.isEqual(a,b)
+
+      def equals2[A:Eq](a:A, b:A) = {
+        implicitly[Eq[A]].isEqual(a,b)
+      }
+
+      equals(Team("Cincinnati", "Bengals"), Team("Cincinnati", "Bengals")) should be (true)
+      equals2(Team("Cincinnati", "Bengals"), Team("Cincinnati", "Bengals")) should be (true)
     }
 
     it("can be used for ordering") {
-      pending
+      case class Team(city:String, mascot:String)
+
+      object MyPredef {
+        implicit val orderTeamsByCityAsc: Ordering[Team] = new Ordering[Team]() {
+          override def compare(x: Team, y: Team): Int = x.city.compareTo(y.city)
+        }
+
+        implicit val orderTeamsByMascotAsc: Ordering[Team] = new Ordering[Team]() {
+          override def compare(x: Team, y: Team): Int = x.mascot.compareTo(y.mascot)
+        }
+      }
+
+      val teams = List(Team("Cincinnati", "Bengals"),
+                       Team("Madrid", "Real Madrid"),
+                       Team("Las Vegas", "Golden Knights"),
+                       Team("Houston", "Astros"),
+                       Team("Cleveland", "Cavaliers"),
+                       Team("Arizona", "Diamondbacks"))
+
+      import MyPredef.orderTeamsByCityAsc
+
+      teams.sorted.head.city should be ("Arizona")
+      teams.min.city should be ("Arizona")
     }
   }
 }
