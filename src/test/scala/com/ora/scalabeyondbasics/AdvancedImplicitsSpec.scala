@@ -4,21 +4,12 @@ import org.scalatest.{FunSpec, Matchers}
 
 class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
-  class Artist(val firstName:String, val lastName:String)
-  object Artist {
-    import scala.language.implicitConversions
-    implicit def tuple2Artist(t:(String, String)): Artist = new Artist(t._1, t._2)
-  }
-
   describe(
     """Implicits is like a Map[Class[A], A] where A is any object and it is tied into the scope,
       | and it is there when you need it, hence it is implicit. This provide a lot of great techniques that we
       | can use in Scala.""".stripMargin) {
 
-
-
-    it(
-      """is done per scope so in the following example, we will begin with an implicit value
+    it("""is done per scope so in the following example, we will begin with an implicit value
         |  and call it from inside a method which uses a multiple parameter list where one
         |  one group would """.stripMargin) {
 
@@ -29,9 +20,8 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       calcPayment(50) should be (5000)
     }
 
-    it(
-      """will allow you to place something manually,
-        |if you want to override the implicit value""".stripMargin) {
+    it("""will allow you to place something manually,
+        |  if you want to override the implicit value""".stripMargin) {
       implicit val rate: Int = 100
 
       def calcPayment(hours:Int)(implicit rate:Int) = hours * rate
@@ -39,8 +29,7 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       calcPayment(50)(110) should be (5500)
     }
 
-    it(
-      """will gripe at compile time if there are two implicit bindings of the same type.  It's
+    it("""will gripe at compile time if there are two implicit bindings of the same type.  It's
         |  worth noting that what Scala doing are compile time tricks for implicit. One strategy is to
         |  wrap a value in a type to avoid conflict""".stripMargin) {
 
@@ -55,8 +44,7 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       calcPayment(50) should be (5000)
     }
 
-    it(
-      """is really used to bind services that require something and
+    it("""is really used to bind services that require something and
         |  you don't particularly need to inject everywhere explicitly, in this
         |  case let's discuss Future[+T]""".stripMargin) {
 
@@ -90,12 +78,11 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
     }
 
-    it(
-      """the implicit group parameter list, can contain more than one parameter, but
+    it("""the implicit group parameter list, can contain more than one parameter, but
         |  needs to be in the same implicit parameter group""".stripMargin) {
 
-      implicit val bonus = 1000
-      implicit val currency = "Euro"
+      implicit val bonus: Int = 1000
+      implicit val currency: String = "Euro"
 
       def calcYearRate(amount:Int)(implicit bonus:Int, currency:String):String = {
         amount + bonus + " " + currency
@@ -104,7 +91,7 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       calcYearRate(60000) should be ("61000 Euro")
     }
 
-    it( """can also be replaced with default parameters, choose accordingly""") {
+    it("""can also be replaced with default parameters, choose accordingly""") {
 
       def calcYearRate(amount:Int, bonus:Int = 1000, currency:String = "Euro"):String = {
         amount + bonus + " " + currency
@@ -114,21 +101,18 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
     }
 
 
-    it(
-      """Christopher A. Question: if you have a List[String] implicitly will it try
+    it("""If you have a List[String] implicitly will it try
         | to inject into a List[Double]?""".stripMargin) {
 
-      implicit val listOfString = List("Foo", "Bar", "Baz")
-      implicit val listOfDouble = List(1.0, 2.0, 3.0)
-
+      implicit val listOfString: List[String] = List("Foo", "Bar", "Baz")
+      implicit val listOfDouble: List[Double] = List(1.0, 2.0, 3.0)
 
       val result = implicitly[List[Double]]
       result(1) should be (2.0)
     }
 
 
-    it(
-      """can be used for something like what Ruby has called
+    it("""can be used for something like what Ruby has called
         |  monkey patching or Groovy calls mopping where we can add functionality to
         |  a class that we don't have access to, like isOdd/isEven
         |  in the Int class.  This is what we call implicit wrappers.
@@ -162,8 +146,7 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       10.isEven should be (true)
     }
 
-    it(
-      """can be use a short hand version of this called implicit classes, before using them
+    it("""Can be use a short hand version of this called implicit classes, before using them
         |  there are some rules:
         |  1. They can only be used inside of an object/trait/class
         |  2. They can only take one parameter in the constructor
@@ -180,10 +163,23 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       10.isEven should be (true)
     }
 
-    it(
-      """can also convert things to make it fit into a particular API,
-        | this is called implicit conversion,
-        | in this scenario we will use a method""".stripMargin) {
+
+    it("""Lab: Create an implicit wrapper that has a method called exclaim.
+        |  When exclaim is called on any object. It will return the
+        |  toString implementation but with an exclamation mark at the end.
+        |
+        |  For example:
+        |  10.exclaim => 10!
+        |  "Hello".exclaim => Hello!
+        |  List(1,2,3).exclaim => List(1,2,3)!
+        |
+        |  Note: You can include everything you need inside of this test.""".stripMargin) {
+       pending
+    }
+
+    it("""Can also convert things to make it fit into a particular API,
+        |  this is called implicit conversion,
+        |  in this scenario we will use a method""".stripMargin) {
 
       import scala.language.implicitConversions
 
@@ -200,10 +196,9 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       combine(100, 200) should be (Dollar(300))
     }
 
-    it(
-      """can also convert things to make it fit into a particular API,
-        | this is called implicit conversion,
-        | in this scenario we will use a function""".stripMargin) {
+    it("""Can also convert things to make it fit into a particular API,
+        |  this is called implicit conversion,
+        |  in this scenario we will use a function""".stripMargin) {
 
       import scala.language.implicitConversions
 
@@ -218,11 +213,9 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
       combine(Dollar(100), Dollar(200)) should be (Dollar(300))
       combine(100, 200) should be (Dollar(300))
-
     }
 
-    it(
-      """is done automatically in Scala because what is inside of scala.Predef, for example,
+    it("""Is done automatically in Scala because what is inside of scala.Predef, for example,
         |  it explains how be can set a scala.Float , and there is java.lang.Float,
         |  java primitive float.
         |  We can investigate this by looking at
@@ -234,6 +227,8 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       val result = java.lang.Math.max(f, f2)
       result should be (3002.0f)
     }
+
+
   }
 
   describe("Locating implicits recipes") {
@@ -254,7 +249,14 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       10.isOdd should be (false)
     }
 
-    it( """can also use a companion object to store any implicit recipes""".stripMargin) {
+    it("""can also use a companion object to store any implicit recipes""".stripMargin) {
+
+      class Artist(val firstName:String, val lastName:String)
+      object Artist {
+        import scala.language.implicitConversions
+        implicit def tuple2Artist(t:(String, String)): Artist = new Artist(t._1, t._2)
+      }
+
       def playPerformer(a:Artist) = s"Playing performer ${a.firstName} ${a.lastName}"
 
       playPerformer("Weird Al" -> "Yankovic") should be ("Playing performer Weird Al Yankovic")
@@ -268,16 +270,15 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       concatAll(3 -> "Hello") should be ("HelloHelloHello")
     }
 
+
     it(
-      """can use JavaConverters to convert a collection in
-        | Java to Scala and vice versa""".stripMargin) {
-      import java.time._
-      import scala.collection.JavaConverters._
+      """Lab: Use scala.collection.JavaConverters to convert the Java call,
+        |  java.time.ZoneId.getAvailableZoneIds, from a Java collection to
+        |  a Scala collection. The do something fun with it like find all the
+        |  time zones in Asia and sort them.  Everything can be
+        |  done inside of this test. Consider REPL as a handy tool.""".stripMargin) {
 
-      val result = ZoneId.getAvailableZoneIds.asScala.toList
-        .filter(_.startsWith("Asia")).map(s => s.split("/").last).sorted.size
-
-      result should be (98)
+      pending
     }
   }
 
@@ -362,12 +363,12 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
         def toList(implicit ev: A =:= B):List[A] = List(a,b).asInstanceOf[List[A]]
       }
 
-      //val myPair = new Pair(10, "Foo")
-      //myPair.toList
+      val myPair = new Pair(10, 500)
+      myPair.toList
     }
 
     it("""uses the operator, <:< which will test if A is a subtype of B""") {
-      pending
+       pending
     }
   }
 
@@ -429,18 +430,22 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
       equals2(Team("Cincinnati", "Bengals"), Team("Cincinnati", "Bengals")) should be (true)
     }
 
-    it("can be used for ordering") {
+    it(
+      """Lab: Ordering is a typeclass and is used to determine ordering.
+        |  It is a standard procedure to create your own for custom types that
+        |  you create.
+        |
+        |  Lookup scala.math.Ordering, understand how it can used.
+        |  Lookup the sorted method in scala.collection.List
+        |  and see how it used.  Inside of the test, create an Ordering
+        |  that will order a Team alphabetically by city.
+        |
+        |  Advanced: Create different orderings, like order by team by mascot.
+        |  Select any strategy that you learned today.""".stripMargin) {
+
+      pending
+
       case class Team(city:String, mascot:String)
-
-      object MyPredef {
-        implicit val orderTeamsByCityAsc: Ordering[Team] = new Ordering[Team]() {
-          override def compare(x: Team, y: Team): Int = x.city.compareTo(y.city)
-        }
-
-        implicit val orderTeamsByMascotAsc: Ordering[Team] = new Ordering[Team]() {
-          override def compare(x: Team, y: Team): Int = x.mascot.compareTo(y.mascot)
-        }
-      }
 
       val teams = List(Team("Cincinnati", "Bengals"),
                        Team("Madrid", "Real Madrid"),
@@ -448,11 +453,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
                        Team("Houston", "Astros"),
                        Team("Cleveland", "Cavaliers"),
                        Team("Arizona", "Diamondbacks"))
-
-      import MyPredef.orderTeamsByCityAsc
-
-      teams.sorted.head.city should be ("Arizona")
-      teams.min.city should be ("Arizona")
     }
   }
 }
