@@ -212,6 +212,9 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
 
 
     it( """Lab: Do a my second using pattern matching""") {
+
+      pending
+
       def mySecond[A](list:List[A]):Option[A] = ???
 
       mySecond(List()) should be (None)
@@ -220,6 +223,9 @@ class AdvancedPatternMatchingSpec extends FunSpec with Matchers {
     }
 
     it( """can also do the above an alternative pipe to match""") {
+
+      pending
+
       def mySecond[A](list:List[A]):Option[A] = ???
 
       mySecond(List()) should be (None)

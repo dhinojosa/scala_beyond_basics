@@ -374,7 +374,6 @@ class AdvancedImplicitsSpec extends FunSpec with Matchers {
 
   describe("Getting around Erasure Using TypeTags") {
     it("used to use Manifest but now uses a type tag to retrieve what is erased") {
-
       import scala.reflect.runtime.universe._
       def matchList[A](list:List[A])(implicit tt:TypeTag[A]): String = {
         tt.tpe match {
