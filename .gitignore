@@ -136,3 +136,6 @@ Session.vim
 tags
 .cache-tests
 project/build.properties
+.ensime
+.ensime_cache
+project/.ensime
